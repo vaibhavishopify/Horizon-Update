@@ -1,7 +1,8 @@
 {%- doc -%}
   Renders thumbnail navigation for a Splide slider (`snippets/slider.liquid`).
-  Each thumbnail is a `[data-slider-go]` button: assets/slider.js selects the slide on click and
-  keeps `aria-selected` in sync (scrolling the selected thumbnail into view inside the list).
+  Each thumbnail is a `[data-slider-go]` button with `role="tab"` inside a `role="tablist"` list:
+  assets/slider.js selects the slide on click and keeps `aria-selected` in sync (scrolling the
+  selected thumbnail into view inside the list).
   Pass the output as the slider's `controls` parameter.
 
   @param {object} media - Array of media objects, in slide order
@@ -33,10 +34,15 @@
     style="--thumbnail-radius: {{ thumbnail_radius }}px;"
   {% endif %}
 >
-  <div class="slider-thumbnails__list mx-auto inline-flex h-fit gap-xs px-[var(--slideshow-thumbnails-padding-inline,var(--padding-sm))] py-[var(--slideshow-thumbnails-padding-block,var(--padding-sm))]">
+  <div
+    class="slider-thumbnails__list mx-auto inline-flex h-fit gap-xs px-[var(--slideshow-thumbnails-padding-inline,var(--padding-sm))] py-[var(--slideshow-thumbnails-padding-block,var(--padding-sm))]"
+    role="tablist"
+    aria-label="{{ 'accessibility.slider_select_slide' | t }}"
+  >
     {% for item in media %}
       <button
         type="button"
+        role="tab"
         class="slider-thumbnails__thumbnail button button-unstyled relative"
         aria-label="{{ 'accessibility.slide_status' | t: index: forloop.index, length: forloop.length }}"
         data-slider-go="{{ forloop.index0 }}"

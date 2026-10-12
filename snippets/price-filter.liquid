@@ -23,7 +23,6 @@
   <details
     class="facets__panel"
     {% if filter_style == 'horizontal' %}
-      data-auto-close-details="desktop"
       x-data="autoCloseDetails('desktop')"
       x-on:click.outside="handleOutsideClick"
     {% endif %}

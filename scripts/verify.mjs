@@ -34,7 +34,13 @@ const VIEWPORTS = {
 const THEME_ASSET = /\/cdn\/shop\/t\/\d+\/assets\//;
 
 /** Console errors that come from Shopify platform scripts, not the theme. */
-const IGNORED_ERRORS = [/\[shopify-account\]/, /web-pixels/, /cdn\.shopify\.com\/shopifycloud/];
+// Third-party / platform console noise that is not produced by theme code.
+const IGNORED_ERRORS = [
+  /\[shopify-account\]/,
+  /web-pixels/,
+  /cdn\.shopify\.com\/shopifycloud/,
+  /shopifysvc\.com/, // Shopify platform metrics (OTLP) endpoint blocked by CORS on the local dev server
+];
 
 /**
  * Swipes a slider from right to left. Mobile uses real touch events through the DevTools

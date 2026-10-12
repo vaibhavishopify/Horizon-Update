@@ -26,6 +26,6 @@ Build outputs in `assets/` are committed because Shopify serves them directly:
 ## Architecture notes
 
 - Tailwind source: `src/tailwind.css` (theme tokens mapped to the theme's CSS custom properties, no preflight).
-- Alpine bootstrap and component registry: `assets/alpine-components.js`.
+- Alpine bootstrap and component registry: `assets/alpine-components.js`; one component per `assets/alpine-<name>.js`.
 - Central slider module: `assets/slider.js` (`<slider-component>`); sections only render markup and pass `data-slider` config.
-- Theme authoring rules: see `AGENTS.md`.
+- Coding standards: `best-practices.md` (project rules for Alpine, Tailwind, Splide, workflow). Theme authoring baseline: `AGENTS.md`.

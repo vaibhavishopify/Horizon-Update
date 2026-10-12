@@ -74,7 +74,6 @@
       id="Sorting-{{ section_id }}"
       data-default-sort-by="{{ default_sort_by }}"
       class="facets__panel {% if should_use_select_on_mobile %} mobile:hidden {% endif %}"
-      data-auto-close-details="desktop,mobile"
       x-data="autoCloseDetails('desktop,mobile')"
       x-on:click.outside="handleOutsideClick"
       on:toggle="/handleToggle"

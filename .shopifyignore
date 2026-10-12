@@ -9,4 +9,5 @@ package-lock.json
 .gitattributes
 AGENTS.md
 README.md
+best-practices.md
 verify-output/
