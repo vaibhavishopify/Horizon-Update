@@ -31,7 +31,11 @@
       "@theme/component-quantity-selector": "{{ 'component-quantity-selector.js' | asset_url }}",
       "@theme/comparison-slider": "{{ 'comparison-slider.js' | asset_url }}",
       "@theme/sticky-add-to-cart": "{{ 'sticky-add-to-cart.js' | asset_url }}",
-      "@theme/fly-to-cart": "{{ 'fly-to-cart.js' | asset_url }}"
+      "@theme/fly-to-cart": "{{ 'fly-to-cart.js' | asset_url }}",
+      "@theme/alpine": "{{ 'alpine.js' | asset_url }}",
+      "@theme/alpine-components": "{{ 'alpine-components.js' | asset_url }}",
+      "@theme/splide": "{{ 'splide.js' | asset_url }}",
+      "@theme/slider": "{{ 'slider.js' | asset_url }}"
     }
   }
 </script>
@@ -158,11 +162,6 @@
   fetchpriority="low"
 ></script>
 <script
-  src="{{ 'accordion-custom.js' | asset_url }}"
-  type="module"
-  fetchpriority="low"
-></script>
-<script
   src="{{ 'media.js' | asset_url }}"
   type="module"
   fetchpriority="low"
@@ -188,27 +187,7 @@
   fetchpriority="low"
 ></script>
 <script
-  src="{{ 'show-more.js' | asset_url }}"
-  type="module"
-  fetchpriority="low"
-></script>
-<script
-  src="{{ 'slideshow.js' | asset_url }}"
-  type="module"
-  fetchpriority="low"
-></script>
-<script
   src="{{ 'layered-slideshow.js' | asset_url }}"
-  type="module"
-  fetchpriority="low"
-></script>
-<script
-  src="{{ 'anchored-popover.js' | asset_url }}"
-  type="module"
-  fetchpriority="low"
-></script>
-<script
-  src="{{ 'floating-panel.js' | asset_url }}"
   type="module"
   fetchpriority="low"
 ></script>
@@ -229,11 +208,6 @@
 ></script>
 <script
   src="{{ 'rte-formatter.js' | asset_url }}"
-  type="module"
-  fetchpriority="low"
-></script>
-<script
-  src="{{ 'volume-pricing.js' | asset_url }}"
   type="module"
   fetchpriority="low"
 ></script>
@@ -273,9 +247,17 @@
   </script>
 {% endif %}
 
+{% comment %} Alpine.js bootstrap: registers Alpine.data components and starts Alpine. {% endcomment %}
 <script
-  src="{{ 'auto-close-details.js' | asset_url }}"
-  defer="defer"
+  src="{{ 'alpine-components.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+{% comment %} Central Splide slider module (<slider-component>); global so sliders injected by section rendering initialise. {% endcomment %}
+<script
+  src="{{ 'slider.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
 ></script>
 
 <script>
@@ -289,6 +271,18 @@
       items_added_to_cart_one: `{{ 'content.items_added_to_cart.one' | t }}`,
       items_added_to_cart_other: `{{ 'content.items_added_to_cart.other' | t }}`,
       cart_count: `{{ 'accessibility.cart_count' | t }}`,
+      slider_previous: `{{ 'accessibility.slideshow_previous' | t }}`,
+      slider_next: `{{ 'accessibility.slideshow_next' | t }}`,
+      slider_first: `{{ 'accessibility.slider_first' | t }}`,
+      slider_last: `{{ 'accessibility.slider_last' | t }}`,
+      slider_go_to_slide: `{{ 'accessibility.slider_go_to_slide' | t }}`,
+      slider_go_to_page: `{{ 'accessibility.slider_go_to_page' | t }}`,
+      slider_play: `{{ 'accessibility.slideshow_play' | t }}`,
+      slider_pause: `{{ 'accessibility.slideshow_pause' | t }}`,
+      slider_role_carousel: `{{ 'accessibility.slider_role_carousel' | t }}`,
+      slider_role_slide: `{{ 'accessibility.slider_role_slide' | t }}`,
+      slider_select_slide: `{{ 'accessibility.slider_select_slide' | t }}`,
+      slider_slide_label: `{{ 'accessibility.slider_slide_label' | t }}`,
     },
     routes: {
       cart_add_url: '{{ routes.cart_add_url | append: '.js' }}',

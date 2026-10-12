@@ -11,7 +11,14 @@
   </div>
 
   <div class="collection-info__controls collection-info__controls--{{ block_settings.navigation }}">
-    {%- render 'slideshow-controls', icon_style: block_settings.icons_style, shape: block_settings.background_style -%}
+    {%- if block_settings.icons_style != 'none' -%}
+      {%- render 'slider-arrows',
+        icon_style: block_settings.icons_style,
+        icon_shape: block_settings.background_style,
+        overlay: false,
+        reveal: false
+      -%}
+    {%- endif -%}
   </div>
 </div>
 

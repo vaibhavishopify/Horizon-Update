@@ -1,0 +1,125 @@
+{%- doc -%}
+  Renders a Splide slider. All sliders in the theme use this markup; behaviour and defaults
+  live in assets/slider.js (`<slider-component>`), loaded globally from snippets/scripts.liquid
+  so sliders injected later (predictive search, section rendering) still initialise.
+
+  Structure: optional header, then a `.splide__container` holding the arrows overlay and the
+  `.splide__track`, then optional controls (pagination, thumbnails, play/pause).
+
+  @param {object} [slides] - Array of slide HTML strings; each is wrapped in an `<li class="splide__slide">`.
+  @param {string} [slides_html] - Pre-built slide markup whose direct children already carry `splide__slide`.
+    Use instead of `slides` when the slides are rendered by blocks or need per-slide attributes.
+  @param {object} [slide_ids] - Optional array of ids, parallel to `slides`, written to `data-slide-id`.
+  @param {string} [config] - JSON object with the desktop (base) Splide options, e.g. '{"perPage":4,"gap":"16px"}'.
+  @param {string} [config_mobile] - JSON object with overrides applied at or below 749px.
+  @param {string} [class] - Classes for the `slider-component` root.
+  @param {string} [container_class] - Classes for the `.splide__container` wrapper.
+  @param {string} [track_class] - Classes for the `.splide__track` element.
+  @param {string} [list_class] - Classes for the `.splide__list` element.
+  @param {string} [slide_class] - Classes added to every generated `<li class="splide__slide">`.
+  @param {string} [ref] - `ref` attribute for parent components that read `refs.<name>`.
+  @param {string} [style] - Inline style for the root.
+  @param {string} [attributes] - Extra attributes for the root (e.g. block.shopify_attributes).
+  @param {number} [per_page] - Desktop slides per page, used to size slides before Splide initialises.
+  @param {number} [per_page_mobile] - Mobile slides per page for the same purpose (defaults to 1).
+  @param {boolean} [show_arrows] - Render previous/next arrows over the slides (see snippets/slider-arrows.liquid).
+  @param {string} [icon_style] - 'arrow' (default) or 'chevron'; append 'large' for bigger icons.
+  @param {string} [icon_shape] - 'none' (default), 'circle' or 'square'.
+  @param {string} [arrows_position] - 'center' (default), 'left' or 'right'.
+  @param {string} [arrows_class] - Extra classes for the arrows wrapper (e.g. gutter padding).
+  @param {string} [arrow_class] - Extra classes for each arrow button.
+  @param {boolean} [arrows_always_visible] - Skip the hover reveal and show arrows at all times.
+  @param {string} [header] - HTML rendered before the container (titles, inline arrows).
+  @param {string} [controls] - HTML rendered after the container (pagination, thumbnails, play/pause).
+
+  @example
+  {% render 'slider',
+    slides: cards,
+    config: '{"perPage":4,"gap":"16px"}',
+    config_mobile: '{"fixedWidth":"60vw","gap":"12px"}',
+    per_page: 4,
+    show_arrows: true,
+    icon_style: section.settings.icons_style,
+    icon_shape: section.settings.icons_shape
+  %}
+{%- enddoc -%}
+
+{%- liquid
+  assign per_page = per_page | default: 1
+  assign per_page_mobile = per_page_mobile | default: 1
+  assign reveal_arrows = true
+  if arrows_always_visible
+    assign reveal_arrows = false
+  endif
+-%}
+
+<slider-component
+  class="splide is-rendered group/slider relative block overflow-x-clip {{ class }}"
+  style="--slider-per-page: {{ per_page }}; --slider-per-page-mobile: {{ per_page_mobile }};{{ style }}"
+  {% if ref != blank %}
+    ref="{{ ref }}"
+  {% endif %}
+  {% if config != blank %}
+    data-slider="{{ config | strip | escape }}"
+  {% endif %}
+  {% if config_mobile != blank %}
+    data-slider-mobile="{{ config_mobile | strip | escape }}"
+  {% endif %}
+  {{ attributes }}
+>
+  {% if header != blank %}
+    {{ header }}
+  {% endif %}
+
+  <div class="splide__container relative {{ container_class }}">
+    {% if show_arrows %}
+      {% render 'slider-arrows',
+        icon_style: icon_style,
+        icon_shape: icon_shape,
+        position: arrows_position,
+        overlay: true,
+        reveal: reveal_arrows,
+        class: arrows_class,
+        arrow_class: arrow_class
+      %}
+    {% endif %}
+
+    <div class="splide__track {{ track_class }}">
+      <ul class="splide__list list-unstyled {{ list_class }}">
+        {%- if slides_html != blank -%}
+          {{ slides_html }}
+        {%- else -%}
+          {%- for slide in slides -%}
+            <li
+              class="splide__slide min-w-0 {{ slide_class }}"
+              {% if slide_ids and slide_ids[forloop.index0] != blank %}
+                data-slide-id="{{ slide_ids[forloop.index0] }}"
+              {% endif %}
+            >
+              {{ slide }}
+            </li>
+          {%- endfor -%}
+        {%- endif -%}
+      </ul>
+    </div>
+  </div>
+
+  {% if controls != blank %}
+    {{ controls }}
+  {% endif %}
+</slider-component>
+
+{% stylesheet %}
+  /* Approximate slide widths until Splide measures them, so the layout does not jump on init. */
+  slider-component:not(.is-initialized) .splide__slide {
+    width: calc(100% / var(--slider-per-page-mobile, 1));
+
+    @media screen and (min-width: 750px) {
+      width: calc(100% / var(--slider-per-page, 1));
+    }
+  }
+
+  slider-component .splide__slide:focus-visible {
+    outline-offset: calc(var(--focus-outline-offset) * -1);
+  }
+{% endstylesheet %}

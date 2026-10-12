@@ -227,6 +227,10 @@ function registerEventListeners() {
 
         if (!element) return;
 
+        // A click that ends a slider drag is not an activation (see assets/slider.js, which marks
+        // the slider while dragging; Splide itself suppresses the native click the same way).
+        if (eventName === 'click' && element.closest('slider-component[data-slider-dragged]')) return;
+
         const proxiedEvent =
           event.target !== element
             ? new Proxy(event, {

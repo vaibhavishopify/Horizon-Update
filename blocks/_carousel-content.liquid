@@ -1,8 +1,9 @@
 
 
 {% liquid
-  assign slide_count = block.blocks.size
   assign icons_style = section.settings.icons_style
+  assign columns = section.settings.columns | default: 4
+  assign mobile_columns = section.settings.mobile_columns | default: 1
 
   assign color_scheme_class = ''
   if block.settings.inherit_color_scheme == false
@@ -10,11 +11,11 @@
   endif
 
   if section.settings.section_width == 'page-width'
-    assign slideshow_gutters = 'start end'
-    assign gutter_style = '--gutter-slide-width: var(--util-page-margin-offset);'
+    assign gutter = 'var(--util-page-margin-offset)'
+    assign arrows_class = 'px-[var(--util-page-margin-offset)]'
   else
-    assign slideshow_gutters = null
-    assign gutter_style = '--gutter-slide-width: 0px;'
+    assign gutter = '0px'
+    assign arrows_class = ''
   endif
 
   assign show_arrows = false
@@ -22,10 +23,33 @@
     assign show_arrows = true
   endif
 
-  assign slide_position = block.settings.position
+  # Card height "fill" stretches every card to the tallest one; otherwise cards align to the chosen position.
+  assign list_class = 'items-start'
   if block.settings.height == 'fill'
-    assign slide_position = 'stretch'
+    assign list_class = 'items-stretch'
+  else
+    case block.settings.position
+      when 'center'
+        assign list_class = 'items-center'
+      when 'bottom'
+        assign list_class = 'items-end'
+    endcase
   endif
+
+  # Desktop: `columns` cards per page with the next card peeking. Mobile: `mobile_columns` cards per page.
+  capture config
+    echo '{"perPage":' | append: columns
+    echo ',"gap":"var(--carousel-gap, 8px)"'
+    echo ',"padding":{"left":"' | append: gutter | append: '","right":"calc(' | append: gutter | append: ' + var(--peek-next-slide-size, 0px))"}'
+    echo ',"arrows":' | append: show_arrows
+    echo '}'
+  endcapture
+
+  capture config_mobile
+    echo '{"perPage":' | append: mobile_columns
+    echo ',"padding":{"left":"' | append: gutter | append: '","right":"calc(' | append: gutter | append: ' + var(--peek-next-slide-size, 0px))"}'
+    echo '}'
+  endcapture
 -%}
 
 {% capture blocks_content %}
@@ -41,59 +65,28 @@
 {% endcapture %}
 
 {% assign slideshow_class = 'carousel-content spacing-style ' | append: color_scheme_class %}
-<div
-  class="force-full-width"
-  style="{{ gutter_style }}"
->
-  {% render 'slideshow',
+<div class="force-full-width">
+  {% render 'slider',
     class: slideshow_class,
     style: slideshow_style,
-    slides: blocks_content,
+    slides_html: blocks_content,
+    list_class: list_class,
+    config: config,
+    config_mobile: config_mobile,
+    per_page: columns,
+    per_page_mobile: mobile_columns,
     show_arrows: show_arrows,
     icon_style: icons_style,
     icon_shape: section.settings.icons_shape,
-    auto_hide_controls: false,
-    infinite: false,
-    initial_slide: 0,
-    slide_count: slide_count,
-    slide_position: slide_position,
-    slideshow_gutters: slideshow_gutters,
+    arrows_class: arrows_class,
     attributes: block.shopify_attributes
   %}
 </div>
 
 {% stylesheet %}
-  .carousel-content slideshow-slides {
-    --slideshow-gap: var(--carousel-gap);
-  }
-
-  .carousel-content slideshow-slides > .card {
-    flex: 0 0 auto;
-    width: calc(
-      (100% - (var(--carousel-gap, 8px) * (var(--carousel-mobile-columns, 2) - 1)) - var(--peek-next-slide-size, 0px)) /
-        var(--carousel-mobile-columns, 2)
-    );
-  }
-
-  @media screen and (min-width: 750px) {
-    .carousel-content slideshow-slides > .card {
-      width: calc(
-        (100% - (var(--carousel-gap, 8px) * (var(--carousel-columns, 4) - 1)) - var(--peek-next-slide-size, 0px)) /
-          var(--carousel-columns, 4)
-      );
-    }
-  }
-
-  .carousel-content .slideshow-control[disabled] {
-    display: none;
-  }
-
-  .carousel-content slideshow-arrows {
-    padding-inline: var(--util-page-margin-offset);
-  }
-
-  .carousel-content .slideshow-control--next {
-    margin-inline-start: auto;
+  /* Cards are Splide slides (`_card` block root). Fill height is handled by the list's align-items. */
+  .carousel-content .splide__list.items-stretch > .card {
+    height: auto;
   }
 {% endstylesheet %}
 

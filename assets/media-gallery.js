@@ -6,7 +6,7 @@ import { ThemeEvents, VariantUpdateEvent, ZoomMediaSelectedEvent } from '@theme/
  *
  * @typedef {object} Refs
  * @property {import('./zoom-dialog').ZoomDialog} [zoomDialogComponent] - The zoom dialog component.
- * @property {import('./slideshow').Slideshow} [slideshow] - The slideshow component.
+ * @property {import('./slider').SliderComponent} [slideshow] - The Splide slider (ref name kept for compatibility).
  * @property {HTMLElement[]} [media] - The media elements.
  *
  * @extends Component<Refs>

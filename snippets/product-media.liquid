@@ -149,7 +149,7 @@
 
   /*** Media border-radius feature ****/
   @media screen and (min-width: 750px) {
-    .media-gallery--carousel slideshow-container,
+    .media-gallery--carousel .splide__container,
     .media-gallery--grid .product-media > * {
       border-radius: var(--media-radius, 0);
       overflow: hidden;
@@ -158,7 +158,7 @@
     /* When the CAROUSEL is on the LEFT side */
     .product-information:not(.product-information--media-right)
       .media-gallery--carousel.media-gallery--extend
-      slideshow-container {
+      .splide__container {
       border-top-left-radius: 0;
       border-bottom-left-radius: 0;
     }
@@ -166,7 +166,7 @@
     /* When the CAROUSEL is on the RIGHT side */
     .product-information.product-information--media-right
       .media-gallery--carousel.media-gallery--extend
-      slideshow-container {
+      .splide__container {
       border-top-right-radius: 0;
       border-bottom-right-radius: 0;
     }

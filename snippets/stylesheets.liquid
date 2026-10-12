@@ -1,2 +1,6 @@
 {{ 'overflow-list.css' | asset_url | preload_tag: as: 'style' }}
 {{ 'base.css' | asset_url | stylesheet_tag: preload: true }}
+{% comment %} Tailwind utilities, built from src/tailwind.css with `npm run build:css`. Must load after base.css. {% endcomment %}
+{{ 'tailwind.css' | asset_url | stylesheet_tag }}
+{% comment %} Splide core layout styles (vendored by `npm run vendor`) for sliders rendered by snippets/slider.liquid. {% endcomment %}
+{{ 'splide-core.css' | asset_url | stylesheet_tag }}

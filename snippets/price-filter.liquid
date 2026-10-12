@@ -24,6 +24,8 @@
     class="facets__panel"
     {% if filter_style == 'horizontal' %}
       data-auto-close-details="desktop"
+      x-data="autoCloseDetails('desktop')"
+      x-on:click.outside="handleOutsideClick"
     {% endif %}
     {% if filter_style == 'vertical' %}
       open
@@ -64,6 +66,7 @@
       </span>
     </summary>
     <floating-panel-component
+      x-data="floatingPanel()"
       {% unless filter_style == 'vertical' %}
         data-close-on-resize
       {% endunless %}

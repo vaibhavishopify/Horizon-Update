@@ -1,12 +1,10 @@
-
-
-{% if section.blocks.size > 1 %}
-  <script
-    src="{{ 'announcement-bar.js' | asset_url }}"
-    type="module"
-    fetchpriority="low"
-  ></script>
-{% endif %}
+{% comment %}
+  Section contract.
+  Announcement bar in the header group. With more than one block it fades between
+  announcements (Alpine `announcementBar` component in assets/alpine-components.js).
+  @example
+  <!-- Added through the header group; each announcement is an _announcement block -->
+{% endcomment %}
 
 <div class="section-background color-{{ section.settings.color_scheme }}"></div>
 <aside
@@ -23,16 +21,26 @@
   %}
 
   <announcement-bar-component
-    class="announcement-bar__slider"
+    class="announcement-bar__slider relative flex flex-row items-center max-md:col-span-full"
+    x-data="announcementBar({ autoplay: {% if autoplay == true %}{{ section.settings.speed | default: 0 }}{% else %}0{% endif %} })"
+    x-on:click="handleClick"
+    x-on:mouseenter="suspend"
+    x-on:mouseleave="resume"
     {% if autoplay == true %}
       autoplay="{{ section.settings.speed }}" aria-live="polite"
     {% endif %}
   >
     {% if show_arrows %}
-      {% render 'slideshow-arrows', icon_style: 'chevron' %}
+      {% render 'slider-arrows',
+        icon_style: 'chevron',
+        overlay: true,
+        reveal: false,
+        class: 'announcement-bar__arrows mix-blend-normal text-foreground',
+        arrow_class: 'announcement-bar__arrow'
+      %}
     {% endif %}
 
-    <div class="announcement-bar__slides">
+    <div class="announcement-bar__slides mx-auto grid w-[calc(100%-var(--button-size)*2)] max-w-[680px]">
       {% content_for 'blocks' %}
     </div>
   </announcement-bar-component>
@@ -43,23 +51,9 @@
     border-block-end: var(--border-bottom-width) solid var(--color-border);
   }
 
-  .announcement-bar__slider {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    position: relative;
-
-    @media screen and (max-width: 749px) {
-      grid-column: 1 / -1;
-    }
-  }
-
+  /* Layout utilities live in the markup; slides are stacked on one named grid area so they can cross-fade. */
   .announcement-bar__slides {
-    display: grid;
     grid: [stack] auto / [stack] auto;
-    width: calc(100% - var(--button-size) * 2);
-    max-width: 680px;
-    margin-inline: auto;
   }
 
   .announcement-bar__slides > * {
@@ -76,35 +70,25 @@
     }
   }
 
-  .announcement-bar__slider slideshow-arrows {
-    padding: 0;
-    mix-blend-mode: normal;
-  }
-
-  .announcement-bar__slider slideshow-arrows .slideshow-control {
-    color: var(--color-foreground);
-  }
-
-  .announcement-bar__slider .slideshow-control {
-    display: flex;
+  /* Arrows come from snippets/slider-arrows.liquid; sized to the theme button size here */
+  .announcement-bar__arrow {
     padding: 0;
     width: var(--button-size);
     height: var(--button-size);
-    align-items: center;
-    justify-content: center;
-    opacity: 1;
-    animation: none;
+    min-width: 0;
+    min-height: 0;
+    color: var(--color-foreground);
 
     @media screen and (min-width: 750px) {
       --slideshow-control-offset: calc((var(--button-size) - var(--icon-size-xs)) / 2);
 
-      .section--page-width &.slideshow-control--previous {
-        transform: translateX(var(--slideshow-control-offset));
+      .section--page-width &.splide__arrow--prev {
+        translate: var(--slideshow-control-offset) 0;
       }
     }
   }
 
-  .announcement-bar__slider .slideshow-control .svg-wrapper {
+  .announcement-bar__arrow .svg-wrapper {
     width: var(--icon-size-xs);
     height: var(--icon-size-xs);
   }
@@ -115,11 +99,6 @@
 
   .announcement-bar__text:first-child {
     margin: 0;
-  }
-
-  .announcement-bar__link {
-    position: absolute;
-    inset: 0;
   }
 {% endstylesheet %}
 

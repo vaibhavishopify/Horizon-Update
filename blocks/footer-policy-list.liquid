@@ -1,13 +1,14 @@
 
 {% if shop.policies.size > 0 %}
   <anchored-popover-component
+    x-data="anchoredPopover({ hover: true })"
     data-hover-triggered="true"
   >
     <button
       class="policy-list-trigger button-unstyled"
       popovertarget="terms-policies-popover"
       popovertargetaction="toggle"
-      ref="trigger"
+      x-ref="trigger"
       style="{% render 'typography-style', preset: 'custom', settings: block.settings %}"
       {{ block.shopify_attributes }}
     >
@@ -17,7 +18,7 @@
       class="terms-policies-popover color-{{ settings.popover_color_scheme }}"
       id="terms-policies-popover"
       popover="auto"
-      ref="popover"
+      x-ref="popover"
     >
       <ul
         class="

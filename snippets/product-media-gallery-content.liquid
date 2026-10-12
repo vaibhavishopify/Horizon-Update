@@ -382,65 +382,117 @@
           {% endcapture %}
         {% endif %}
         {% if block_settings.zoom and media.media_type == 'model' %}
-          {%- capture attributes -%}"{% if settings.transition_to_main_product and forloop.first %} data-view-transition-type="product-image-transition"{% endif %}{% endcapture -%}
+          {%- capture attributes -%}{% if settings.transition_to_main_product and forloop.first %} data-view-transition-type="product-image-transition"{% endif %}{% endcapture -%}
         {% elsif block_settings.zoom %}
           {%- capture attributes -%}on:click="#zoom-dialog-{{ block_id }}/open/{{ forloop.index0 }}"{% if settings.transition_to_main_product and forloop.first %} data-view-transition-type="product-image-transition"{% endif %}{% endcapture -%}
+        {% else %}
+          {%- assign attributes = '' -%}
         {% endif %}
 
-        {% render 'slideshow-slide',
-          index: forloop.index0,
-          children: children,
-          class: class,
-          style: style,
-          attributes: attributes,
-          media_fit: block_settings.media_fit,
-        %}
+        <li
+          class="splide__slide min-w-0 {{ class | strip | strip_newlines }}"
+          ref="slides[]"
+          data-slide-id="{{ media.id }}"
+          style="--product-media-fit: {{ block_settings.media_fit | default: 'cover' }}; {{ style | strip | strip_newlines }}"
+          {{ attributes }}
+        >
+          {{ children }}
+        </li>
       {% endfor %}
     {% endcapture %}
+
+    {% liquid
+      # Splide options. Rewind (not loop): clones would duplicate videos and 3D models.
+      assign show_dots = false
+      if sorted_media.size > 1
+        if render_slideshow_controls and slideshow_controls_style == 'dots'
+          assign show_dots = true
+        endif
+        if render_mobile_slideshow_controls and block_settings.slideshow_mobile_controls_style == 'dots'
+          assign show_dots = true
+        endif
+      endif
+
+      capture gallery_config
+        echo '{"perPage":1,"rewind":true,"gap":0'
+        echo ',"arrows":' | append: render_slideshow_arrows
+        echo ',"pagination":' | append: show_dots
+        if media_presentation == 'grid'
+          # Grid presentation: the slider only exists below 750px (the grid shows on desktop).
+          echo ',"destroy":true'
+        endif
+        if sorted_media.size <= 1
+          echo ',"drag":false'
+        endif
+        echo '}'
+      endcapture
+
+      capture gallery_config_mobile
+        echo '{"destroy":false'
+        if block_settings.slideshow_mobile_controls_style == 'hint'
+          echo ',"fixedWidth":"90%","gap":"var(--gap-2xs)"'
+        endif
+        echo '}'
+      endcapture
+    %}
 
     {% if sorted_media.size > 1 %}
       {% capture controls %}
         {% if render_slideshow_controls %}
-          {%- render 'slideshow-controls',
-            class: slideshow_controls_class,
-            style: slideshow_controls_style,
-            item_count: sorted_media.size,
-            thumbnails: sorted_media,
-            controls_on_media: controls_on_media,
-            pagination_position: pagination_position,
-            aspect_ratio: block_settings.aspect_ratio,
-            thumbnail_radius: block_settings.thumbnail_radius
-          -%}
+          {% if slideshow_controls_style == 'thumbnails' %}
+            {% render 'slider-thumbnails',
+              media: sorted_media,
+              position: pagination_position,
+              aspect_ratio: block_settings.aspect_ratio,
+              thumbnail_radius: block_settings.thumbnail_radius,
+              on_media: controls_on_media,
+              class: slideshow_controls_class
+            %}
+          {% else %}
+            {% render 'slider-controls',
+              style: slideshow_controls_style,
+              item_count: sorted_media.size,
+              controls_on_media: controls_on_media,
+              class: slideshow_controls_class
+            %}
+          {% endif %}
         {% endif %}
 
         {% if render_mobile_slideshow_controls %}
-          {%- render 'slideshow-controls',
-            class: 'desktop:hidden media-gallery__mobile-controls',
-            style: block_settings.slideshow_mobile_controls_style,
-            item_count: sorted_media.size,
-            thumbnails: sorted_media,
-            controls_on_media: mobile_controls_on_media,
-            pagination_position: 'center',
-            aspect_ratio: block_settings.aspect_ratio,
-            thumbnail_radius: block_settings.thumbnail_radius
-          -%}
+          {% if block_settings.slideshow_mobile_controls_style == 'thumbnails' %}
+            {% render 'slider-thumbnails',
+              media: sorted_media,
+              position: 'center',
+              aspect_ratio: block_settings.aspect_ratio,
+              thumbnail_radius: block_settings.thumbnail_radius,
+              on_media: mobile_controls_on_media,
+              class: 'desktop:hidden media-gallery__mobile-controls'
+            %}
+          {% else %}
+            {% render 'slider-controls',
+              style: block_settings.slideshow_mobile_controls_style,
+              item_count: sorted_media.size,
+              controls_on_media: mobile_controls_on_media,
+              class: 'desktop:hidden media-gallery__mobile-controls'
+            %}
+          {% endif %}
         {% endif %}
       {% endcapture %}
     {% endif %}
 
-    {% if render_slideshow_arrows %}
-      {% capture slideshow_arrows %}
-        {% render 'slideshow-arrows', class: 'mobile:hidden', icon_style: block_settings.icons_style %}
-      {% endcapture %}
-    {% endif %}
-
-    {% render 'slideshow',
+    {% render 'slider',
       ref: 'slideshow',
       class: slideshow_class,
-      slides: slides,
-      slide_count: sorted_media.size,
-      slideshow_arrows: slideshow_arrows,
+      slides_html: slides,
+      config: gallery_config,
+      config_mobile: gallery_config_mobile,
+      per_page: 1,
+      show_arrows: render_slideshow_arrows,
+      icon_style: block_settings.icons_style,
       arrows_position: icons_position,
+      arrows_class: 'mobile:hidden',
+      arrow_class: 'ps-0 pe-md',
+      arrows_always_visible: true,
       controls: controls
     %}
 
@@ -754,21 +806,6 @@
     }
   }
 
-  @media screen and (max-width: 749px) {
-    /* Media gallery has a peeking slide on the right side always, and on the left side when the current slide is the last one */
-    .media-gallery--hint
-      :is(
-        slideshow-slide:has(+ slideshow-slide[aria-hidden='false']:last-of-type),
-        slideshow-slide[aria-hidden='false'] + slideshow-slide
-      ) {
-      content-visibility: auto;
-
-      slideshow-component[actioned] & {
-        content-visibility: visible;
-      }
-    }
-  }
-
   .dialog-zoomed-gallery__dialog {
     background-color: var(--color-background);
     view-transition-name: zoom-dialog-ui;
@@ -851,16 +888,9 @@
         translate(var(--drag-zoom-translate-x, 0), var(--drag-zoom-translate-y, 0));
     }
 
-    .media-gallery--hint {
-      --slideshow-gap: var(--gap-2xs);
-
-      :not(.dialog-zoomed-gallery) > .product-media-container:not(:only-child) {
-        width: 90%;
-
-        .product-media img {
-          object-fit: cover;
-        }
-      }
+    /* Hint mode: slide width (90%) and gap come from the mobile Splide config. */
+    .media-gallery--hint :not(.dialog-zoomed-gallery) > .product-media-container:not(:only-child) .product-media img {
+      object-fit: cover;
     }
   }
 
@@ -872,11 +902,11 @@
 
   /* Mobile thumbnails styling */
   @media screen and (max-width: 749px) {
-    .media-gallery__mobile-controls[thumbnails] {
+    .media-gallery__mobile-controls.slider-thumbnails {
       --thumbnail-width: 44px;
     }
 
-    .media-gallery__mobile-controls[thumbnails] .slideshow-controls__thumbnail {
+    .media-gallery__mobile-controls.slider-thumbnails .slider-thumbnails__thumbnail {
       width: var(--thumbnail-width);
       height: auto;
     }
@@ -970,82 +1000,57 @@
   }
 
   /*
-   * Product media gallery slideshow context styles
+   * Product media gallery slider context styles (Splide via snippets/slider.liquid)
    */
-  .product-media-gallery__slideshow--single-media slideshow-container {
-    @media screen and (max-width: 749px) {
-      grid-area: unset;
-    }
-  }
 
   /* Display grid view as a carousel on mobile, grid on desktop */
-  media-gallery:is(.media-gallery--grid) slideshow-component {
+  media-gallery:is(.media-gallery--grid) slider-component {
     @media screen and (min-width: 750px) {
       display: none;
     }
   }
 
-  @media screen and (max-width: 749px) {
-    /* Media gallery has a peeking slide on the right side always, and on the left side when the current slide is the last one */
-    .media-gallery--hint
-      :is(
-        slideshow-slide:has(+ slideshow-slide[aria-hidden='false']:last-of-type),
-        slideshow-slide[aria-hidden='false'] + slideshow-slide
-      ) {
-      content-visibility: auto;
-
-      slideshow-component[actioned] & {
-        content-visibility: visible;
-      }
-    }
-  }
-
+  /* Vertical thumbnails sit in a column beside the slides on desktop */
   @media screen and (min-width: 750px) {
-    .media-gallery--carousel slideshow-component:has(slideshow-controls[thumbnails]) {
-      &:has(slideshow-controls[pagination-position='right']) {
-        display: grid;
-        grid-template:
-          'container controls' auto
-          'arrows controls' min-content
-          / 1fr auto;
-      }
+    .media-gallery--carousel slider-component:has(.slider-thumbnails--right) {
+      display: grid;
+      grid-template:
+        'container controls' auto
+        / 1fr auto;
+    }
 
-      &:has(slideshow-controls[pagination-position='left']) {
-        display: grid;
-        grid-template:
-          'controls container' auto
-          'controls arrows' min-content
-          / auto 1fr;
-      }
+    .media-gallery--carousel slider-component:has(.slider-thumbnails--left) {
+      display: grid;
+      grid-template:
+        'controls container' auto
+        / auto 1fr;
+    }
 
-      slideshow-controls[pagination-position='left'] {
-        order: -1;
-      }
+    .media-gallery--carousel slider-component > .splide__container {
+      grid-area: container;
+      min-width: 0;
+    }
+
+    .media-gallery--carousel slider-component > .slider-thumbnails {
+      grid-area: controls;
     }
   }
 
-  .media-gallery--carousel slideshow-arrows .slideshow-control {
-    padding-inline: 0 var(--padding-md);
-    opacity: 1;
-  }
-
   @media screen and (max-width: 749px) {
-    slideshow-component:has(:not(.mobile\:hidden) :is(.slideshow-controls__dots, .slideshow-controls__counter))
-      .shopify-model-viewer-ui__controls-area {
+    slider-component:has(:not(.mobile\:hidden).slider-controls) .shopify-model-viewer-ui__controls-area {
       /* Position the controls just above the counter */
       bottom: calc(var(--minimum-touch-target) + var(--padding-sm));
     }
   }
 
   @media screen and (min-width: 750px) {
-    slideshow-component:has(:not(.desktop\:hidden) :is(.slideshow-controls__dots, .slideshow-controls__counter))
-      .shopify-model-viewer-ui__controls-area {
+    slider-component:has(:not(.desktop\:hidden).slider-controls) .shopify-model-viewer-ui__controls-area {
       /* Position the controls just above the counter */
       bottom: calc(var(--minimum-touch-target) + var(--padding-sm));
     }
   }
 
-  slideshow-slide.product-media-container--tallest {
+  .splide__slide.product-media-container--tallest {
     content-visibility: visible;
   }
 {% endstylesheet %}

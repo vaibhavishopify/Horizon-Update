@@ -40,6 +40,8 @@
     class="facets__panel"
     {% if filter_style == 'horizontal' %}
       data-auto-close-details="desktop"
+      x-data="autoCloseDetails('desktop')"
+      x-on:click.outside="handleOutsideClick"
     {% endif %}
     {% if filter_style == 'vertical' %}
       open
@@ -106,6 +108,7 @@
       </div>
     </summary>
     <floating-panel-component
+      x-data="floatingPanel()"
       {% unless filter_style == 'vertical' %}
         data-close-on-resize
       {% endunless %}
@@ -138,9 +141,10 @@
         {% liquid
           if render_show_more
             if filter_style == 'horizontal'
-              echo '<show-more-component class="show-more" data-expanded="false" data-disable-on-desktop="true" data-skip-node-update="true">'
+              # Tag must not end in "-component": that suffix makes the element a boundary for on:* handlers (see component.js getClosestComponent) and would swallow the prefetch handlers on the items inside.
+              echo '<show-more-disclosure class="show-more" x-data="showMore({ disableOnDesktop: true })" x-bind:data-expanded="String(expanded)" data-expanded="false" data-disable-on-desktop="true" data-skip-node-update="true">'
             else
-              echo '<show-more-component class="show-more" data-expanded="false" data-skip-node-update="true">'
+              echo '<show-more-disclosure class="show-more" x-data="showMore()" x-bind:data-expanded="String(expanded)" data-expanded="false" data-skip-node-update="true">'
             endif
           endif
           assign should_use_pills = true
@@ -159,7 +163,7 @@
 
         <div
           class="facets__inputs-wrapper{% if is_swatch or is_image or should_use_pills %} facets__inputs-wrapper--row{% endif %}"
-          ref="showMoreContent"
+          x-ref="content"
         >
           {% liquid
             if is_swatch
@@ -221,7 +225,7 @@
                   {% if is_disabled %} facets__inputs-list-item--disabled{% endif %}
                 "
                 {% if hidden_class %}
-                  ref="showMoreItems[]"
+                  data-show-more-item
                 {% endif %}
               >
                 {% if value.active %}
@@ -384,8 +388,9 @@
         {% if render_show_more %}
           <button
             class="show-more__button button-unstyled button-unstyled--with-icon{% if filter_style == 'horizontal' %} desktop:hidden{% endif %}"
-            ref="showMoreButton"
-            on:click="/toggle"
+            x-ref="button"
+            x-on:click.prevent="toggle"
+            x-bind:aria-expanded="String(expanded)"
             aria-expanded="false"
             aria-controls="filters-list-{{ sectionId }}-{{ filter.param_name | escape | replace: '.', '-' }}"
           >
@@ -399,7 +404,7 @@
               {{- 'actions.show_less' | t -}}
             </span>
           </button>
-          {% echo '</show-more-component>' %}
+          {% echo '</show-more-disclosure>' %}
         {% endif %}
 
         {% if should_render_clear %}

@@ -11,7 +11,10 @@
         "imports": {
           "@theme/component": "{{ 'component.js' | asset_url }}",
           "@theme/utilities": "{{ 'utilities.js' | asset_url }}",
-          "@theme/qr-code-generator": "{{ 'qr-code-generator.js' | asset_url }}"
+          "@theme/qr-code-generator": "{{ 'qr-code-generator.js' | asset_url }}",
+          "@theme/alpine": "{{ 'alpine.js' | asset_url }}",
+          "@theme/alpine-components": "{{ 'alpine-components.js' | asset_url }}",
+          "@theme/focus": "{{ 'focus.js' | asset_url }}"
         }
       }
     </script>
@@ -21,8 +24,9 @@
       type="module"
       fetchpriority="low"
     ></script>
+    {% comment %} Alpine bootstrap (copy-to-clipboard lives in alpine-components.js). {% endcomment %}
     <script
-      src="{{ 'copy-to-clipboard.js' | asset_url }}"
+      src="{{ 'alpine-components.js' | asset_url }}"
       type="module"
       fetchpriority="low"
     ></script>
@@ -179,10 +183,11 @@
         <copy-to-clipboard-component
           class="gift-card__buttons-full-width gift-card__copy-button"
           text-to-copy="{{ gift_card.code }}"
+          x-data="copyToClipboard()"
         >
           <span
             class="form__message visually-hidden"
-            ref="copySuccessMessage"
+            x-ref="successMessage"
             role="status"
           >
             <span class="svg-wrapper icon-success">
@@ -192,7 +197,7 @@
           </span>
           <button
             class="button gift-card__buttons-full-width"
-            on:click="/copyToClipboard"
+            x-on:click="copy"
           >
             {{ 'gift_cards.issued.copy_code' | t }}
           </button>

@@ -48,6 +48,7 @@
     endif
   -%}
   <anchored-popover-component
+    x-data="anchoredPopover({ hover: true })"
     data-hover-triggered="true"
     class="volume-pricing-info"
     id="volume-pricing-anchor-{{ popover_id }}"
@@ -56,7 +57,7 @@
       type="button"
       class="volume-pricing-info__button button-unstyled{% if show_label %} volume-pricing-info__button--with-label{% endif %}"
       aria-label="{{ 'accessibility.view_pricing_info' | t }}"
-      ref="trigger"
+      x-ref="trigger"
       popovertarget="{{ popover_id }}"
       style="anchor-name: {{ anchor_name }};"
     >
@@ -69,7 +70,7 @@
     <div
       id="{{ popover_id }}"
       class="volume-pricing-info__popover"
-      ref="popover"
+      x-ref="popover"
       popover="auto"
       style="position-anchor: {{ anchor_name }};"
     >

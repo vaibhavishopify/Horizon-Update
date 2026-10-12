@@ -22,14 +22,14 @@
       # In this case, we want the section to be able to read the image aspect ratio of the first slide and apply it to the slideshow slides and slides.
     %}
     {% style %}
-      .shopify-section-{{ section.id }} slideshow-slides,
-      .shopify-section-{{ section.id }} slideshow-slide {
+      .shopify-section-{{ section.id }} .splide__list,
+      .shopify-section-{{ section.id }} .splide__slide {
         min-height: {{ 1 | divided_by: preview_image.aspect_ratio | times: 100 }}vw;
       }
     {% endstyle %}
   {% endif %}
 
-  <div class="slide__image-container{% if rounded_image_corners %} slide__image-container--rounded{% endif %}">
+  <div class="slide__image-container absolute flex size-full overflow-hidden{% if rounded_image_corners %} slide__image-container--rounded{% endif %}">
     {%- if block_settings.toggle_overlay -%}
       {% render 'overlay', settings: block_settings %}
     {%- endif -%}
@@ -61,7 +61,7 @@
         {{
           block_settings.image_1
           | image_url: width: 3840
-          | image_tag: height: height, sizes: sizes, widths: widths, class: 'slide__image', loading: loading, fetchpriority: fetchpriority
+          | image_tag: height: height, sizes: sizes, widths: widths, class: 'slide__image relative size-full object-cover object-center', loading: loading, fetchpriority: fetchpriority
         }}
       {%- else -%}
         {%- if block_settings.video_1.preview_image -%}
@@ -74,13 +74,13 @@
               sizes: sizes,
               widths: widths,
               loading: loading,
-              class: 'slide__video-poster',
+              class: 'slide__video-poster absolute size-full object-cover object-center',
               fetchpriority: fetchpriority
           }}
         {%- endif -%}
         {{
           block_settings.video_1
-          | video_tag: poster: nil, autoplay: true, loop: true, controls: false, muted: true, class: 'slide__video'
+          | video_tag: poster: nil, autoplay: true, loop: true, controls: false, muted: true, class: 'slide__video relative size-full object-cover object-center'
         }}
       {%- endif -%}
     {%- else -%}
@@ -89,11 +89,11 @@
         assign placeholder_variant = 2 | minus: modulo_result
         assign placeholder_name = 'hero-apparel-' | append: placeholder_variant
       -%}
-      {{ placeholder_name | placeholder_svg_tag: 'slide__image' }}
+      {{ placeholder_name | placeholder_svg_tag: 'slide__image relative size-full object-cover object-center' }}
     {%- endif -%}
   </div>
   <div
-    class="spacing-style slide__content{% if block_settings.inherit_color_scheme == false %} color-{{ block_settings.color_scheme }}{% endif %}{% if preview_image or block_settings.toggle_overlay %} background-transparent{% endif %}"
+    class="spacing-style slide__content relative h-full z-layer-flat *:m-auto{% if block_settings.inherit_color_scheme == false %} color-{{ block_settings.color_scheme }}{% endif %}{% if preview_image or block_settings.toggle_overlay %} background-transparent bg-transparent{% endif %}"
     style="{% render 'spacing-style', settings: block_settings %}"
     {{ block.shopify_attributes }}
   >
@@ -109,77 +109,51 @@
   </div>
 {% endcapture %}
 
-{%- capture class -%}
-  {%- if block_settings.inherit_color_scheme == false -%}
-    color-{{ block_settings.color_scheme }}
-  {%- endif -%}
-{%- endcapture -%}
+{%- liquid
+  # Rows for the "content below media" layout, per the slide_height setting (mobile / desktop)
+  assign media_rows = '50dvh'
+  assign media_rows_desktop = '70dvh'
+  case section.settings.slide_height
+    when 'small'
+      assign media_rows = '30dvh'
+      assign media_rows_desktop = '40dvh'
+    when 'medium'
+      assign media_rows = '35dvh'
+      assign media_rows_desktop = '50dvh'
+    when 'large'
+      assign media_rows = '40dvh'
+      assign media_rows_desktop = '60dvh'
+  endcase
+-%}
 
-{% render 'slideshow-slide',
-  index: block_index,
-  class: class,
-  children: children,
-  attributes: block.shopify_attributes,
-  slide_size: section.settings.slide_height,
-  navigate_to_slide: true
-%}
+{% comment %} Splide slide (see sections/slideshow.liquid). Clicking a peeking slide navigates to it via slider.js. {% endcomment %}
+<li
+  class="splide__slide slide relative min-w-0 max-h-full{% if block_settings.inherit_color_scheme == false %} color-{{ block_settings.color_scheme }}{% endif %}"
+  style="--product-media-fit: cover; --grid-template-rows: {{ media_rows }} 1fr; --grid-template-rows-desktop: {{ media_rows_desktop }} 1fr;"
+  {{ block.shopify_attributes }}
+>
+  {{ children }}
+</li>
 
 {% stylesheet %}
-  .slide__content {
-    height: 100%;
-    position: relative;
-    z-index: var(--layer-flat);
-
-    @supports (animation-timeline: auto) {
-      opacity: 0;
-      animation: slide-reveal both linear;
-      animation-timeline: var(--slideshow-timeline);
-    }
-
-    @media (prefers-reduced-motion) {
-      opacity: 1;
-      animation: none;
-    }
-  }
-
-  .slide__content > * {
-    margin: auto;
-  }
-
-  .slide__content.background-transparent {
-    background-color: transparent;
-  }
-
-  slideshow-slide > .slide__image-container {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    position: absolute;
-  }
-
-  .slide__image-container > .slide__image,
-  .slide__image-container > .slide__video,
-  .slide__image-container > .slide__video-poster {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center center;
-  }
-
-  .slide__image-container > .slide__video-poster {
-    position: absolute;
-  }
+  /* Layout and media fitting are utilities in the markup; the rules below are state- and setting-driven. */
 
   /*
-   * Force Safari to recalculate the timeline state on timeline refresh (after loop)
+   * Content reveal: the legacy slideshow faded content with a scroll-driven timeline. Splide moves
+   * with transforms, so the content of the active slide fades in and peeking slides stay faded.
    */
-  slideshow-component[refreshing-timeline] .slide__content {
-    animation: none;
+  @media (prefers-reduced-motion: no-preference) {
+    .splide.is-initialized .splide__slide .slide__content {
+      opacity: 0;
+      transition: opacity var(--animation-speed-slow) var(--animation-easing);
+    }
+
+    .splide.is-initialized .splide__slide.is-active .slide__content {
+      opacity: 1;
+    }
   }
 
-  slideshow-slide .slide__image-container--rounded {
+  .splide__slide .slide__image-container--rounded {
     border-radius: var(--corner-radius, 0);
   }
 {% endstylesheet %}

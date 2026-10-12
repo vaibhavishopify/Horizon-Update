@@ -37,27 +37,24 @@
   endif
 %}
 
-<script
-  src="{{ 'header-drawer.js' | asset_url }}"
-  type="module"
-  fetchpriority="low"
-></script>
-
 <header-drawer
   class="header-drawer {{ class }}"
   style="--menu-image-border-radius: {{ image_border_radius }}px; --resource-card-corner-radius: {{ image_border_radius }}px;"
+  x-data="headerDrawer()"
+  x-on:click="handleClick"
+  x-on:keyup="handleKeyUp"
 >
   <details
     id="Details-menu-drawer-container"
     data-skip-node-update="true"
     class="menu-drawer-container"
-    ref="details"
+    x-ref="details"
     scroll-lock
   >
     <summary
       class="header__icon header__icon--menu header__icon--summary"
       aria-label="{{ 'accessibility.menu' | t }}"
-      on:click="/toggle"
+      data-drawer-action="toggle"
     >
       <span class="svg-wrapper header-drawer-icon header-drawer-icon--open">
         {{- 'icon-menu.svg' | inline_asset_content -}}
@@ -67,7 +64,7 @@
       </span>
     </summary>
     <div
-      ref="menuDrawer"
+      x-ref="menuDrawer"
       class="
         menu-drawer
         color-{{ block_settings.color_scheme }}
@@ -271,7 +268,7 @@
                     <summary
                       id="HeaderDrawer-{{ link.handle }}"
                       class="menu-drawer__menu-item menu-drawer__menu-item--mainlist menu-drawer__animated-element focus-inset{% if link.child_active %} menu-drawer__menu-item--active{% endif %}"
-                      on:click="header-drawer/open/submenu"
+                      data-drawer-action="open-submenu"
                     >
                       <span class="menu-drawer__menu-item-text wrap-text">{{ link.title | escape }}</span>
                       <span class="svg-wrapper icon-caret icon-caret--forward">
@@ -288,7 +285,7 @@
                         <div class="menu-drawer__nav-buttons">
                           <button
                             class="button menu-drawer__back-button focus-inset"
-                            on:click="header-drawer/back"
+                            data-drawer-action="back"
                             aria-label="{{ 'actions.back_to' | t: title: link.title }}"
                           >
                             <span class="svg-wrapper icon-caret icon-caret--backward">
@@ -300,7 +297,7 @@
                             class="button button-unstyled close-button menu-drawer__close-button"
                             type="button"
                             aria-label="{{ 'actions.close' | t }}"
-                            on:click="header-drawer/close"
+                            data-drawer-action="close"
                           >
                             <span class="svg-wrapper header-drawer-icon header-drawer-icon--close">
                               {{- 'icon-close.svg' | inline_asset_content -}}
@@ -611,17 +608,17 @@
               %}
             </div>
           {% else %}
-            <drawer-localization-component class="menu-drawer__localization">
+            <drawer-localization-component class="menu-drawer__localization" x-data="localizationDrawer()">
               <details
                 id="drawer-localization"
                 class="drawer-localization"
-                on:toggle="/toggle"
+                x-on:toggle="toggle"
               >
                 <summary
                   id="HeaderDrawer-localization"
                   class="drawer-localization__button h3 link focus-inset"
                   aria-expanded="false"
-                  on:click="header-drawer/open/submenu"
+                  data-drawer-action="open-submenu"
                   style="{{ form_style }}"
                 >
                   <div class="drawer-localization__button--label h6">
@@ -670,7 +667,7 @@
                   >
                     <button
                       class="button menu-drawer__back-button link focus-inset"
-                      on:click="header-drawer/back"
+                      data-drawer-action="back"
                     >
                       <span class="svg-wrapper icon-caret icon-caret--backward">
                         {{- 'icon-caret.svg' | inline_asset_content -}}
@@ -681,7 +678,7 @@
                       class="button close-button menu-drawer__close-button"
                       type="button"
                       aria-label="{{ 'actions.close' | t }}"
-                      on:click="header-drawer/close"
+                      data-drawer-action="close"
                     >
                       <span class="svg-wrapper header-drawer-icon header-drawer-icon--close">
                         {{- 'icon-close.svg' | inline_asset_content -}}
@@ -759,7 +756,7 @@
     </div>
     <div
       class="menu-drawer__backdrop"
-      on:click="header-drawer/close"
+      data-drawer-action="close"
     ></div>
   </details>
 </header-drawer>

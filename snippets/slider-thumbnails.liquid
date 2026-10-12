@@ -1,0 +1,160 @@
+{%- doc -%}
+  Renders thumbnail navigation for a Splide slider (`snippets/slider.liquid`).
+  Each thumbnail is a `[data-slider-go]` button: assets/slider.js selects the slide on click and
+  keeps `aria-selected` in sync (scrolling the selected thumbnail into view inside the list).
+  Pass the output as the slider's `controls` parameter.
+
+  @param {object} media - Array of media objects, in slide order
+  @param {string} [position] - 'center' (horizontal row, default), 'left' or 'right' (vertical column at 750px and up)
+  @param {string} [aspect_ratio] - Thumbnail aspect ratio, or 'adapt' (default) to use each image's ratio
+  @param {number} [thumbnail_radius] - Border radius in pixels
+  @param {boolean} [on_media] - Whether the thumbnails float over the slides
+  @param {string} [class] - Extra classes for the wrapper
+
+  @example
+  {% capture controls %}
+    {% render 'slider-thumbnails', media: sorted_media, position: 'left', aspect_ratio: block.settings.aspect_ratio %}
+  {% endcapture %}
+{%- enddoc -%}
+
+{%- liquid
+  assign position = position | default: 'center'
+  assign aspect_ratio = aspect_ratio | default: 'adapt'
+  assign wrapper_class = 'slider-thumbnails slider-thumbnails--' | append: position
+  if on_media
+    assign wrapper_class = wrapper_class | append: ' slider-thumbnails--on-media'
+  endif
+-%}
+
+<scroll-hint
+  class="{{ wrapper_class }} flex w-full max-h-full overflow-x-scroll [scrollbar-width:none] {{ class }}"
+  data-slider-go-scroll
+  {% if thumbnail_radius %}
+    style="--thumbnail-radius: {{ thumbnail_radius }}px;"
+  {% endif %}
+>
+  <div class="slider-thumbnails__list mx-auto inline-flex h-fit gap-xs px-[var(--slideshow-thumbnails-padding-inline,var(--padding-sm))] py-[var(--slideshow-thumbnails-padding-block,var(--padding-sm))]">
+    {% for item in media %}
+      <button
+        type="button"
+        class="slider-thumbnails__thumbnail button button-unstyled relative"
+        aria-label="{{ 'accessibility.slide_status' | t: index: forloop.index, length: forloop.length }}"
+        data-slider-go="{{ forloop.index0 }}"
+        aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+        style="--aspect-ratio: {% if aspect_ratio == 'adapt' %}{{ item.preview_image.aspect_ratio | default: 1.0 }}{% else %}{{ aspect_ratio }}{% endif %};"
+      >
+        {% liquid
+          assign focal_point_style = ''
+          if item.presentation.focal_point != blank
+            assign focal_point_style = 'object-position: ' | append: item.presentation.focal_point | append: ';'
+          endif
+        %}
+        {{
+          item.preview_image
+          | image_url: width: 144
+          | image_tag: loading: 'lazy', alt: item.alt, style: focal_point_style
+          | escape
+        }}
+
+        {% if item.media_type == 'video' or item.media_type == 'external_video' %}
+          <span class="slider-thumbnails__badge">
+            {{ 'icon-play.svg' | inline_asset_content }}
+          </span>
+        {% elsif item.media_type == 'model' %}
+          <span class="slider-thumbnails__badge">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              focusable="false"
+              class="icon"
+              fill="none"
+              viewBox="0 0 18 21"
+            >
+              {% render 'icon', icon: '3d-model' %}
+            </svg>
+          </span>
+        {% endif %}
+      </button>
+    {% endfor %}
+  </div>
+</scroll-hint>
+
+{% stylesheet %}
+  .slider-thumbnails::-webkit-scrollbar {
+    display: none;
+  }
+
+  .slider-thumbnails__thumbnail {
+    border-radius: var(--thumbnail-radius, var(--media-radius));
+    width: clamp(44px, 7vw, var(--thumbnail-width));
+    height: auto;
+    aspect-ratio: var(--aspect-ratio);
+    cursor: pointer;
+
+    img {
+      height: 100%;
+      object-fit: cover;
+      border-radius: var(--thumbnail-radius, var(--media-radius));
+    }
+
+    &[aria-selected='true'] {
+      outline: var(--focus-outline-width) solid currentcolor;
+      outline-offset: calc(var(--focus-outline-offset) / 2);
+      border: var(--style-border-width) solid rgb(var(--color-border-rgb) / var(--media-border-opacity));
+    }
+  }
+
+  .slider-thumbnails__badge {
+    position: absolute;
+    top: var(--padding-2xs);
+    right: var(--padding-2xs);
+    width: clamp(16px, 10%, 20px);
+    height: clamp(16px, 10%, 20px);
+    background-color: var(--color-background);
+    border-radius: var(--style-border-radius-xs);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 1px rgb(var(--color-foreground-rgb) / var(--opacity-5));
+
+    svg {
+      width: 60%;
+      height: 60%;
+      fill: var(--color-foreground);
+      opacity: 0.6;
+    }
+  }
+
+  /* Vertical column beside the slides at 750px and up */
+  @media screen and (min-width: 750px) {
+    .slider-thumbnails--left,
+    .slider-thumbnails--right {
+      flex-direction: column;
+      height: 0;
+      min-height: 100%;
+      overflow: hidden auto;
+
+      .slider-thumbnails__list {
+        flex-direction: column;
+        padding-block: var(--padding-2xs);
+      }
+
+      &:not(.slider-thumbnails--on-media) {
+        position: sticky;
+        top: var(--sticky-header-offset, 0);
+
+        .slider-thumbnails__list {
+          padding-block-start: var(--focus-outline-offset);
+        }
+      }
+    }
+
+    .slider-thumbnails--right:not(.slider-thumbnails--on-media) .slider-thumbnails__list {
+      padding-inline-end: var(--slideshow-thumbnails-padding-inline, var(--focus-outline-offset));
+    }
+
+    .slider-thumbnails--left:not(.slider-thumbnails--on-media) .slider-thumbnails__list {
+      padding-inline-start: var(--slideshow-thumbnails-padding-inline, var(--focus-outline-offset));
+    }
+  }
+{% endstylesheet %}

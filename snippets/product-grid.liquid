@@ -180,11 +180,12 @@
     }
   }
 
-  .product-grid slideshow-arrows .slideshow-control {
+  /* Card gallery arrows (Splide) are desktop-only in the grid */
+  .product-grid .card-gallery .splide__arrows {
     display: none;
 
     @media screen and (min-width: 750px) {
-      display: grid;
+      display: flex;
     }
   }
 

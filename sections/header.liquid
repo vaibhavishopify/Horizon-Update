@@ -16,7 +16,6 @@
 
   if section.settings.show_search
     render 'predictive-search-styles'
-    render 'slideshow-styles'
   endif
 
   if section.settings.enable_transparent_header_home and template.name == 'index'
@@ -210,14 +209,15 @@
   {% elsif show_country %}
     <dropdown-localization-component
       class="dropdown-localization mobile:hidden"
+      x-data="localizationDropdown()"
     >
       <button
         type="button"
         class="button dropdown-localization__button localization-selector header-actions__action"
         aria-expanded="false"
         aria-controls="dropdown-localization-results"
-        ref="button"
-        on:click="/toggleSelector"
+        x-ref="button"
+        x-on:click="toggle"
         style="{{ localization_font }} {{ localization_font_size }}"
       >
         {% if show_country %}
@@ -270,7 +270,7 @@
       <div
         class="localization-wrapper {{ section.settings.localization_position }}-bound color-{{ settings.popover_color_scheme }}"
         hidden
-        ref="panel"
+        x-ref="panel"
       >
         {% render 'localization-form',
           show_country: show_country,

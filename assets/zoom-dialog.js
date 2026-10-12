@@ -58,7 +58,8 @@ export class ZoomDialog extends Component {
     };
 
     /** @type {HTMLElement | null} */
-    const sourceImage = event.target instanceof Element ? event.target.closest('li,slideshow-slide') : null;
+    // Grid items and Splide slides are both list items.
+    const sourceImage = event.target instanceof Element ? event.target.closest('li') : null;
 
     if (!supportsViewTransitions() || isLowPowerDevice() || !sourceImage || !targetImage) return open();
 

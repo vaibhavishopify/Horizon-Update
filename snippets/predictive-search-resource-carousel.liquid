@@ -1,5 +1,6 @@
 {%- doc -%}
-  Renders a carousel of predictive search results cards.
+  Renders a carousel of predictive search results cards (collections, pages, articles) with Splide.
+  Arrows sit in the header next to the title (desktop only) and only when there are four or more results.
 
   @param {string} title - The title of the carousel.
   @param {object} resources - The resources to display.
@@ -7,14 +8,25 @@
 {%- enddoc -%}
 
 {% liquid
-  capture slides
-    for resource in resources
-      capture children
-        render 'resource-card', resource_type: resource_type, resource: resource, image_aspect_ratio: '4 / 5', collection_thumbnails: 'multiple'
-      endcapture
-      render 'slideshow-slide', index: forloop.index0, children: children, class: 'predictive-search-results__card'
-    endfor
-  endcapture
+  assign slides = ''
+  for resource in resources
+    capture card
+      render 'resource-card', resource_type: resource_type, resource: resource, image_aspect_ratio: '4 / 5', collection_thumbnails: 'multiple'
+    endcapture
+    assign slides = slides | append: card
+    unless forloop.last
+      assign slides = slides | append: '<!--@slide/split-->'
+    endunless
+  endfor
+  assign slides = slides | split: '<!--@slide/split-->'
+
+  assign show_arrows = false
+  if resources.size >= 4
+    assign show_arrows = true
+  endif
+
+  # Cards are 27.5% of the list width with the theme's medium gap and extra-large gutters, as before.
+  assign config = '{"fixedWidth":"27.5%","gap":"var(--gap-md)","padding":{"left":"var(--padding-xl)","right":"var(--padding-xl)"},"arrows":' | append: show_arrows | append: '}'
 %}
 
 {% capture header %}
@@ -26,27 +38,23 @@
       {{ title }}
     </h4>
 
-    {% if resources.size >= 4 %}
-      {%- render 'slideshow-controls',
-        show_arrows: true,
+    {% if show_arrows %}
+      {% render 'slider-arrows',
         icon_style: 'chevron',
-        shape: 'none'
-      -%}
+        overlay: false,
+        reveal: false,
+        class: 'max-md:hidden'
+      %}
     {% endif %}
   </div>
 {% endcapture %}
 
-{% assign slideshow_class = 'predictive-search-results__list predictive-search-results__wrapper list-unstyled slideshow--single-media' %}
-{% if resources.size >= 4 %}
-  {% assign slideshow_class = 'predictive-search-results__list predictive-search-results__wrapper list-unstyled' %}
-{% endif %}
-
-{% render 'slideshow',
-  class: slideshow_class,
-  header: header,
-  infinite: false,
+{% render 'slider',
   slides: slides,
-  slide_count: resources.size,
-  icon_style: 'chevron',
-  slideshow_gutters: 'start end'
+  slide_class: 'predictive-search-results__card',
+  class: 'predictive-search-results__list list-unstyled pb-sm',
+  track_class: 'py-xl -my-xl',
+  header: header,
+  config: config,
+  per_page: 3
 %}

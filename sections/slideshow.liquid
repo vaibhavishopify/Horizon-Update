@@ -1,32 +1,30 @@
 
 
-{% if section.blocks.size > 1 %}
-  {% if section.settings.display_mode == 'full_frame' %}
-    {% assign autoplay = section.settings.autoplay %}
-  {% else %}
-    {% assign autoplay = false %}
-  {% endif %}
-  {% capture controls %}
-    {%- render 'slideshow-controls',
-      style: section.settings.slideshow_controls_style,
-      autoplay: autoplay,
-      item_count: section.blocks.size,
-      show_arrows: false,
-      arrows_on_media: true,
-      controls_on_media: true,
-      pagination_position: 'center',
-      icon_style: section.settings.icons_style
-    -%}
-  {% endcapture %}
-{% endif %}
-
-{% capture slides %}
-  {% content_for 'blocks' %}
-{% endcapture %}
+{% comment %}
+  Section contract.
+  Hero slideshow of `_slide` blocks rendered with Splide (snippets/slider.liquid, assets/slider.js).
+  Full-frame mode shows one slide per page; "with hints" keeps the page margins so the next
+  and previous slides peek in. Loops on the storefront; rewinds inside the theme editor so
+  cloned slides never interfere with block selection.
+  @example
+  <!-- Add the Slideshow section and one _slide block per slide -->
+{% endcomment %}
 
 {% liquid
+  assign block_count = section.blocks.size
+  assign display_mode = section.settings.display_mode
+  assign with_hints = false
+  if display_mode == 'with_hints'
+    assign with_hints = true
+  endif
+
+  assign autoplay = false
+  if block_count > 1 and display_mode == 'full_frame'
+    assign autoplay = section.settings.autoplay
+  endif
+
   assign section_width_class = ''
-  if section.settings.display_mode == 'with_hints'
+  if with_hints
     assign section_width_class = 'section--page-width'
     if section.settings.full_frame_on_mobile
       assign section_width_class = section_width_class | append: ' section--mobile-full-width'
@@ -35,31 +33,112 @@
     assign section_width_class = 'section--' | append: section.settings.section_width
   endif
 
-  assign slideshow_class = 'slideshow--content-' | append: section.settings.content_position
-  if section.blocks.size == 1
+  assign slideshow_class = 'slideshow slideshow--content-' | append: section.settings.content_position
+  if block_count == 1
     assign slideshow_class = slideshow_class | append: ' slideshow--single-media'
   endif
-  if section.settings.display_mode == 'with_hints'
-    assign slideshow_class = slideshow_class | append: ' slideshow--with-hints'
-    if section.settings.full_frame_on_mobile
-      assign slideshow_class = slideshow_class | append: ' slideshow--with-hints--mobile-full-frame'
-    else
-      assign slideshow_class = slideshow_class | append: ' slideshow--with-hints--mobile-with-hints'
-    endif
+  if with_hints
+    assign slideshow_class = slideshow_class | append: ' slideshow--with-hints col-span-full'
   endif
 
   assign show_arrows = true
-  if section.settings.icons_style == 'none' or section.blocks.size <= 1
+  if section.settings.icons_style == 'none' or block_count <= 1
     assign show_arrows = false
   endif
 
   assign rounded_slide_corners = false
-  if section.settings.display_mode == 'full_frame' and section.settings.section_width == 'page-width'
+  if display_mode == 'full_frame' and section.settings.section_width == 'page-width'
     assign rounded_slide_corners = true
-  elsif section.settings.display_mode == 'with_hints' and section.settings.full_frame_on_mobile == false
+  elsif with_hints and section.settings.full_frame_on_mobile == false
     assign rounded_slide_corners = true
   endif
+
+  # Minimum slide heights per the slide_height setting (mobile / desktop)
+  assign slide_min_height = 'auto'
+  assign slide_min_height_desktop = 'auto'
+  case section.settings.slide_height
+    when 'small'
+      assign slide_min_height = '17.5rem'
+      assign slide_min_height_desktop = '26.25rem'
+    when 'medium'
+      assign slide_min_height = '21.25rem'
+      assign slide_min_height_desktop = '35rem'
+    when 'large'
+      assign slide_min_height = '25rem'
+      assign slide_min_height_desktop = '45rem'
+  endcase
+
+  # Splide options. Loop on the storefront (approved); rewind in the editor to avoid cloned blocks.
+  if block_count > 1
+    if request.design_mode
+      assign slide_type = '"type":"slide","rewind":true'
+    else
+      assign slide_type = '"type":"loop"'
+    endif
+  else
+    assign slide_type = '"type":"slide","arrows":false,"pagination":false,"drag":false'
+  endif
+
+  assign show_dots = false
+  if block_count > 1 and section.settings.slideshow_controls_style == 'dots'
+    assign show_dots = true
+  endif
+  assign autoplay_interval = section.settings.autoplay_speed | default: 4 | times: 1000
+
+  capture config
+    echo '{' | append: slide_type
+    echo ',"gap":"var(--slideshow-gap, 0px)"'
+    if with_hints
+      echo ',"fixedWidth":"calc(100vw - var(--page-margin) * 2)"'
+      echo ',"padding":{"left":"var(--page-margin)","right":"var(--page-margin)"}'
+      echo ',"trimSpace":false'
+    else
+      echo ',"perPage":1'
+    endif
+    echo ',"arrows":' | append: show_arrows
+    echo ',"pagination":' | append: show_dots
+    if autoplay
+      echo ',"autoplay":true,"interval":' | append: autoplay_interval
+    endif
+    echo '}'
+  endcapture
+
+  capture config_mobile
+    echo '{"gap":"min(var(--slideshow-gap, 0px), 10px)"'
+    if with_hints and section.settings.full_frame_on_mobile == false
+      echo ',"fixedWidth":"96%"'
+      echo ',"padding":{"left":"var(--page-margin)","right":"var(--page-margin)"}'
+    else
+      echo ',"fixedWidth":false,"perPage":1,"padding":0'
+    endif
+    echo '}'
+  endcapture
+
+  capture slider_style
+    echo '--slide-min-height: ' | append: slide_min_height | append: ';'
+    echo '--slide-min-height-desktop: ' | append: slide_min_height_desktop | append: ';'
+  endcapture
+
+  assign track_class = ''
+  if block_count > 1
+    assign track_class = 'cursor-grab active:cursor-grabbing'
+  endif
 %}
+
+{% capture slides %}
+  {% content_for 'blocks' %}
+{% endcapture %}
+
+{% capture controls %}
+  {% if block_count > 1 %}
+    {% render 'slider-controls',
+      style: section.settings.slideshow_controls_style,
+      item_count: block_count,
+      autoplay: autoplay,
+      controls_on_media: true
+    %}
+  {% endif %}
+{% endcapture %}
 
 <div class="section-background color-{{ section.settings.color_scheme }}"></div>
 <div
@@ -67,104 +146,52 @@
   style="{% render 'spacing-padding', settings: section.settings %}; --slideshow-gap: {{ section.settings.slideshow_gap }}px;{% if rounded_slide_corners %} --corner-radius: {{ section.settings.corner_radius }}px;{% endif %}"
 >
   <h2 class="visually-hidden">{{ 'accessibility.slideshow' | t }}</h2>
-  {% render 'slideshow',
+  {% render 'slider',
     class: slideshow_class,
+    style: slider_style,
+    slides_html: slides,
     controls: controls,
+    track_class: track_class,
+    config: config,
+    config_mobile: config_mobile,
+    per_page: 1,
     show_arrows: show_arrows,
     icon_style: section.settings.icons_style,
     icon_shape: section.settings.icons_shape,
-    autoplay: autoplay,
-    autoplay_speed: section.settings.autoplay_speed,
-    slides: slides,
-    slide_count: section.blocks.size,
-    slide_size: section.settings.slide_height
+    arrows_class: 'px-xs',
+    attributes: 'data-slider-navigate-on-click'
   %}
 </div>
 
 {% stylesheet %}
-  .slideshow-section {
-    slideshow-arrows .slideshow-control:first-of-type {
-      margin-inline-start: var(--padding-xs);
-    }
-
-    slideshow-arrows .slideshow-control:last-of-type {
-      margin-inline-end: var(--padding-xs);
-    }
-
-    .slideshow--with-hints--mobile-with-hints {
-      gap: var(--slideshow-gap, 0);
-      grid-column: 1 / -1;
-    }
-
-    /* Hide navigation arrows at boundaries for with-hints mode */
-    .slideshow--with-hints--mobile-with-hints slideshow-arrows .slideshow-control {
-      transition: opacity 0.3s ease;
-    }
-
-    /* Override animation for boundary arrows in with-hints mode on hover */
-    slideshow-component.slideshow--with-hints--mobile-with-hints:has(
-        slideshow-slide:first-child:not([aria-hidden='true'])
-      )
-      > slideshow-container
-      > slideshow-arrows
-      .slideshow-control--previous,
-    slideshow-component.slideshow--with-hints--mobile-with-hints:has(
-        slideshow-slide:last-child:not([aria-hidden='true'])
-      )
-      > slideshow-container
-      > slideshow-arrows
-      .slideshow-control--next {
-      animation: none;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    @media screen and (max-width: 749px) {
-      .slideshow--with-hints--mobile-with-hints slideshow-slides {
-        padding-inline: var(--page-margin);
-      }
-
-      .slideshow--with-hints--mobile-with-hints slideshow-slide {
-        width: 96%;
-      }
-
-      .slideshow--with-hints--mobile-with-hints slideshow-slides {
-        gap: min(var(--slideshow-gap, 0), 10px);
-      }
-    }
+  /* Slide widths, gaps and gutters come from the Splide config; CSS covers heights, corners and content layout. */
+  .slideshow .splide__list {
+    min-height: var(--slide-min-height, auto);
 
     @media screen and (min-width: 750px) {
-      .slideshow--with-hints {
-        gap: var(--slideshow-gap, 0);
-        grid-column: 1 / -1;
-      }
+      min-height: var(--slide-min-height-desktop, auto);
+    }
+  }
 
-      .slideshow--with-hints slideshow-slides {
-        padding-inline: var(--page-margin);
-        gap: var(--slideshow-gap, 0);
-      }
+  .slideshow .splide__slide {
+    border-radius: var(--corner-radius, 0);
+    overflow: hidden;
+  }
 
-      .slideshow--with-hints slideshow-slide {
-        width: calc((100vw - var(--page-margin) * 2));
-        overflow: hidden;
-      }
+  .slideshow .splide__slide:not(.is-active) {
+    cursor: pointer;
+  }
 
-      .slideshow--with-hints slideshow-arrows .slideshow-control {
-        transition: opacity 0.3s ease;
-      }
+  .slideshow--content-below-media .splide__slide {
+    display: grid;
+    grid-template-rows: var(--grid-template-rows);
 
-      slideshow-component.slideshow--with-hints:has(slideshow-slide:first-child:not([aria-hidden='true']))
-        > slideshow-container
-        > slideshow-arrows
-        .slideshow-control--previous,
-      slideshow-component.slideshow--with-hints:has(slideshow-slide:last-child:not([aria-hidden='true']))
-        > slideshow-container
-        > slideshow-arrows
-        .slideshow-control--next {
-        animation: none;
-        opacity: 0;
-        pointer-events: none;
-      }
+    @media screen and (min-width: 750px) {
+      grid-template-rows: var(--grid-template-rows-desktop);
+    }
+
+    :is(.slide__image-container, .slide__content) {
+      position: static;
     }
   }
 {% endstylesheet %}

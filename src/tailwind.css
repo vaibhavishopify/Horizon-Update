@@ -1,0 +1,195 @@
+/*
+ * Tailwind CSS source for the Horizon theme.
+ * Build: `npm run build:css` -> assets/tailwind.css (loaded from snippets/stylesheets.liquid).
+ *
+ * Decisions:
+ * - Preflight is NOT imported. Horizon owns its own reset and base typography in assets/base.css.
+ * - Utilities are emitted unlayered so they win against base.css rules of equal specificity
+ *   by source order (tailwind.css loads after base.css). Section `{% stylesheet %}` CSS is
+ *   injected by Shopify after this file, so a component's legacy rules still win until they
+ *   are removed. Use the `!` modifier only as a last resort during a partial migration.
+ * - Tailwind's default colour palette is removed. Colours come from the merchant's colour
+ *   schemes (snippets/color-schemes.liquid) and are referenced through the theme's own
+ *   custom properties, so `text-foreground` resolves inside any `.color-*` scheme.
+ * - Breakpoints match the theme: 750px is the canonical mobile/desktop boundary
+ *   (utilities.js `mediaQueryLarge`), 990px / 1200px / 1400px are the secondary ones.
+ * - Named spacing, radius, font and motion tokens reference the merchant-driven variables
+ *   emitted by snippets/theme-styles-variables.liquid, so settings keep working.
+ */
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css';
+
+@source '../layout';
+@source '../sections';
+@source '../blocks';
+@source '../snippets';
+@source '../templates';
+@source '../assets/*.js';
+@source not '../assets/alpine.js';
+@source not '../assets/splide.js';
+@source not '../assets/popover-polyfill.js';
+@source not '../assets/qr-code-generator.js';
+/* Blocked utilities: these names are emitted as classes by merchant settings
+   (blocks/email-signup.liquid border_variation = "underline") and must not be
+   styled by Tailwind. Use `decoration-*` plus `[text-decoration-line:underline]`
+   or a component class instead. */
+@source not inline('underline');
+
+@theme {
+  /* Remove palette and default breakpoints; the theme supplies both. */
+  --color-*: initial;
+  --breakpoint-*: initial;
+  --breakpoint-md: 750px;
+  --breakpoint-lg: 990px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-2xl: 1400px;
+}
+
+@theme inline reference {
+  /* Colour scheme tokens (complete colours keep merchant alpha) */
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  --color-foreground-heading: var(--color-foreground-heading);
+  --color-foreground-muted: var(--color-foreground-muted);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-border: var(--color-border);
+  --color-shadow: var(--color-shadow);
+  --color-error: var(--color-error);
+  --color-success: var(--color-success);
+  --color-white: var(--color-white);
+  --color-black: var(--color-black);
+  --color-instock: var(--color-instock);
+  --color-lowstock: var(--color-lowstock);
+  --color-outofstock: var(--color-outofstock);
+  --color-input-background: var(--color-input-background);
+  --color-input-text: var(--color-input-text);
+  --color-input-border: var(--color-input-border);
+  --color-primary-button-text: var(--color-primary-button-text);
+  --color-primary-button-background: var(--color-primary-button-background);
+  --color-primary-button-border: var(--color-primary-button-border);
+  --color-secondary-button-text: var(--color-secondary-button-text);
+  --color-secondary-button-background: var(--color-secondary-button-background);
+  --color-secondary-button-border: var(--color-secondary-button-border);
+
+  /* Spacing scale from theme-styles-variables.liquid (p-md, gap-lg, m-2xl ...) */
+  --spacing-3xs: var(--padding-3xs);
+  --spacing-2xs: var(--padding-2xs);
+  --spacing-xs: var(--padding-xs);
+  --spacing-sm: var(--padding-sm);
+  --spacing-md: var(--padding-md);
+  --spacing-lg: var(--padding-lg);
+  --spacing-xl: var(--padding-xl);
+  --spacing-2xl: var(--padding-2xl);
+  --spacing-3xl: var(--padding-3xl);
+  --spacing-4xl: var(--padding-4xl);
+  --spacing-5xl: var(--padding-5xl);
+  --spacing-6xl: var(--padding-6xl);
+  --spacing-page-margin: var(--page-margin);
+  --spacing-touch-target: var(--minimum-touch-target);
+
+  /* Radii */
+  --radius-xs: var(--style-border-radius-xs);
+  --radius-sm: var(--style-border-radius-sm);
+  --radius-md: var(--style-border-radius-md);
+  --radius-lg: var(--style-border-radius-lg);
+  --radius-50: var(--style-border-radius-50);
+  --radius-pills: var(--style-border-radius-pills);
+  --radius-inputs: var(--style-border-radius-inputs);
+  --radius-buttons-primary: var(--style-border-radius-buttons-primary);
+  --radius-buttons-secondary: var(--style-border-radius-buttons-secondary);
+  --radius-popover: var(--style-border-radius-popover);
+
+  /* Typography */
+  --font-body: var(--font-body--family);
+  --font-heading: var(--font-heading--family);
+  --font-subheading: var(--font-subheading--family);
+  --font-accent: var(--font-accent--family);
+  --text-3xs: var(--font-size--3xs);
+  --text-2xs: var(--font-size--2xs);
+  --text-xs: var(--font-size--xs);
+  --text-sm: var(--font-size--sm);
+  --text-md: var(--font-size--md);
+  --text-lg: var(--font-size--lg);
+  --text-xl: var(--font-size--xl);
+  --text-2xl: var(--font-size--2xl);
+  --text-3xl: var(--font-size--3xl);
+  --text-4xl: var(--font-size--4xl);
+  --text-5xl: var(--font-size--5xl);
+  --text-6xl: var(--font-size--6xl);
+
+  /* Motion */
+  --ease-theme: var(--animation-easing);
+  --ease-out-cubic: var(--ease-out-cubic);
+  --ease-out-quad: var(--ease-out-quad);
+  --ease-in-out-quad: var(--ease-in-out-quad);
+
+  /* Icon sizes live in the spacing namespace so `size-icon-md`, `w-icon-sm` etc. work. */
+  --spacing-icon-2xs: var(--icon-size-2xs);
+  --spacing-icon-xs: var(--icon-size-xs);
+  --spacing-icon-sm: var(--icon-size-sm);
+  --spacing-icon-md: var(--icon-size-md);
+  --spacing-icon-lg: var(--icon-size-lg);
+}
+
+/*
+ * Durations and z-index are not theme namespaces in Tailwind v4, so the theme's motion and
+ * layer tokens are exposed as explicit utilities instead.
+ */
+@utility duration-fast {
+  transition-duration: var(--animation-speed-fast);
+}
+@utility duration-theme {
+  transition-duration: var(--animation-speed);
+}
+@utility duration-medium {
+  transition-duration: var(--animation-speed-medium);
+}
+@utility duration-slow {
+  transition-duration: var(--animation-speed-slow);
+}
+@utility duration-drawer {
+  transition-duration: var(--drawer-animation-speed);
+}
+@utility z-layer-section-background {
+  z-index: var(--layer-section-background);
+}
+@utility z-layer-lowest {
+  z-index: var(--layer-lowest);
+}
+@utility z-layer-base {
+  z-index: var(--layer-base);
+}
+@utility z-layer-flat {
+  z-index: var(--layer-flat);
+}
+@utility z-layer-raised {
+  z-index: var(--layer-raised);
+}
+@utility z-layer-heightened {
+  z-index: var(--layer-heightened);
+}
+@utility z-layer-sticky {
+  z-index: var(--layer-sticky);
+}
+@utility z-layer-window-overlay {
+  z-index: var(--layer-window-overlay);
+}
+@utility z-layer-header-menu {
+  z-index: var(--layer-header-menu);
+}
+@utility z-layer-overlay {
+  z-index: var(--layer-overlay);
+}
+@utility z-layer-menu-drawer {
+  z-index: var(--layer-menu-drawer);
+}
+@utility z-layer-temporary {
+  z-index: var(--layer-temporary);
+}
+
+/* Alpine.js: hide elements until Alpine has initialised them. */
+[x-cloak] {
+  display: none !important;
+}

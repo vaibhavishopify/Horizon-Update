@@ -1,0 +1,12 @@
+# Development tooling that must not be uploaded to the store
+node_modules/
+src/
+scripts/
+docs/
+package.json
+package-lock.json
+.gitignore
+.gitattributes
+AGENTS.md
+README.md
+verify-output/

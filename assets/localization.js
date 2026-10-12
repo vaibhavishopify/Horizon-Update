@@ -1,5 +1,5 @@
 import { Component } from '@theme/component';
-import { isClickedOutside, normalizeString, onAnimationEnd } from '@theme/utilities';
+import { normalizeString } from '@theme/utilities';
 
 /**
  * A custom element that displays a localization form.
@@ -403,150 +403,10 @@ class LocalizationFormComponent extends Component {
   };
 }
 
-/**
- * A custom element that displays a dropdown localization form.
- *
- * @typedef {object} DropdownRefs
- * @property {HTMLButtonElement} button - The button element.
- * @property {HTMLDivElement} panel - The panel element.
- * @property {LocalizationFormComponent} localizationForm - The localization form component.
- *
- * @extends {Component<DropdownRefs>}
- */
-class DropdownLocalizationComponent extends Component {
-  get isHidden() {
-    return this.refs.panel.hasAttribute('hidden');
-  }
-
-  /**
-   * Toggles the panel.
-   */
-  toggleSelector() {
-    return this.isHidden ? this.showPanel() : this.hidePanel();
-  }
-
-  /**
-   * Shows the panel.
-   */
-  showPanel() {
-    if (!this.isHidden) return;
-
-    this.addEventListener('keyup', this.#handleKeyUp);
-    document.addEventListener('click', this.#handleClickOutside);
-
-    this.refs.panel.removeAttribute('hidden');
-    this.refs.button.setAttribute('aria-expanded', 'true');
-
-    onAnimationEnd(this.refs.panel, () => {
-      this.#updateWidth();
-      this.refs.localizationForm?.focusSearchInput();
-    });
-  }
-
-  /**
-   * Hides the panel.
-   */
-  hidePanel = () => {
-    if (this.isHidden) return;
-
-    this.removeEventListener('keyup', this.#handleKeyUp);
-    document.removeEventListener('click', this.#handleClickOutside);
-
-    this.refs.button?.setAttribute('aria-expanded', 'false');
-    this.refs.panel.setAttribute('hidden', '');
-    this.refs.localizationForm?.resetForm();
-  };
-
-  /**
-   * Handles the click outside event.
-   *
-   * @param {PointerEvent} event - The event object.
-   */
-  #handleClickOutside = (event) => {
-    if (isClickedOutside(event, this)) {
-      this.hidePanel();
-    }
-  };
-
-  /**
-   * Updates the width of the panel.
-   */
-  #updateWidth() {
-    this.style.setProperty('--width', `${this.refs.localizationForm.offsetWidth}px`);
-  }
-
-  /**
-   * Handles the keyup event.
-   *
-   * @param {KeyboardEvent} event - The event object.
-   */
-  #handleKeyUp = (event) => {
-    switch (event.key) {
-      case 'Escape':
-        this.hidePanel();
-        event.stopPropagation();
-        this.refs.button?.focus();
-        break;
-    }
-  };
-}
-
-/**
- * A custom element that displays a drawer localization form.
- *
- * @typedef {object} DrawerRefs
- * @property {HTMLDialogElement} dialog - The dialog element.
- * @property {LocalizationFormComponent} localizationForm - The localization form component.
- *
- * @extends {Component<DrawerRefs>}
- */
-class DrawerLocalizationComponent extends Component {
-  /**
-   * Toggles the dialog.
-   *
-   * @param {ToggleEvent} event - The event object.
-   */
-  toggle(event) {
-    const { target } = event;
-    const { localizationForm } = this.refs;
-
-    if (!localizationForm || !(target instanceof HTMLDetailsElement)) return;
-
-    const countryList = localizationForm.querySelector('.country-selector-form__wrapper');
-
-    if (target.open) {
-      if (countryList) countryList.addEventListener('scroll', this.#onCountryListScroll);
-      onAnimationEnd(target, localizationForm.focusSearchInput);
-    } else {
-      countryList?.removeEventListener('scroll', this.#onCountryListScroll);
-      localizationForm.resetForm();
-    }
-  }
-
-  /**
-   * Handles the scroll event on the country list.
-   *
-   * @param {Event} event - The scroll event object.
-   */
-  #onCountryListScroll = (event) => {
-    const countryFilter = this.querySelector('.country-filter');
-    const countryList = event.target instanceof HTMLElement ? event.target : null;
-
-    if (countryFilter && countryList) {
-      const shouldShowBorder = countryList.scrollTop > 0;
-      countryFilter.classList.toggle('is-scrolled', shouldShowBorder);
-    }
-  };
-}
+// The dropdown and drawer wrappers (`dropdown-localization-component`,
+// `drawer-localization-component`) are Alpine components now: see
+// `localizationDropdown` and `localizationDrawer` in alpine-components.js.
 
 if (!customElements.get('localization-form-component')) {
   customElements.define('localization-form-component', LocalizationFormComponent);
-}
-
-if (!customElements.get('dropdown-localization-component')) {
-  customElements.define('dropdown-localization-component', DropdownLocalizationComponent);
-}
-
-if (!customElements.get('drawer-localization-component')) {
-  customElements.define('drawer-localization-component', DrawerLocalizationComponent);
 }

@@ -50,10 +50,13 @@ export class ProductCardLink extends Component {
     // Check on the current active image, whether it's a product card image or a resource card image
     const { imagesToTransition } = this.refs;
     const activeImage =
-      imagesToTransition?.find(
-        (/** @type {HTMLImageElement} */ image) =>
-          image.closest('slideshow-slide')?.getAttribute('aria-hidden') === 'false'
-      ) || imagesToTransition?.[imagesToTransition.length - 1];
+      imagesToTransition?.find((/** @type {HTMLImageElement} */ image) => {
+        // Splide slide (card gallery) or legacy slideshow slide
+        const slide = image.closest('.splide__slide, slideshow-slide');
+        if (!slide) return false;
+        if (slide.classList.contains('splide__slide')) return slide.classList.contains('is-active');
+        return slide.getAttribute('aria-hidden') === 'false';
+      }) || imagesToTransition?.[imagesToTransition.length - 1];
 
     if (activeImage instanceof HTMLImageElement) this.#setImageSrcset(activeImage);
 
@@ -96,7 +99,7 @@ if (!customElements.get('product-card-link')) {
  *
  * @typedef {object} ProductCardRefs
  * @property {HTMLAnchorElement} productCardLink - The product card link element.
- * @property {import('slideshow').Slideshow} [slideshow] - The slideshow component.
+ * @property {import('./slider').SliderComponent} [slideshow] - The card gallery slider (ref name kept for compatibility).
  * @property {import('quick-add').QuickAddComponent} [quickAdd] - The quick add component.
  * @property {HTMLElement} [cardGallery] - The card gallery component.
  * @property {HTMLImageElement[]} [imagesToTransition] - The images to transition.

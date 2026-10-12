@@ -75,6 +75,8 @@
       data-default-sort-by="{{ default_sort_by }}"
       class="facets__panel {% if should_use_select_on_mobile %} mobile:hidden {% endif %}"
       data-auto-close-details="desktop,mobile"
+      x-data="autoCloseDetails('desktop,mobile')"
+      x-on:click.outside="handleOutsideClick"
       on:toggle="/handleToggle"
     >
       <summary
@@ -100,6 +102,7 @@
         </span>
       </summary>
       <floating-panel-component
+        x-data="floatingPanel()"
         id="sorting-options-{{ section_id }}-{{ suffix }}"
         class="sorting-filter__options color-{{ settings.popover_color_scheme }}"
         role="listbox"

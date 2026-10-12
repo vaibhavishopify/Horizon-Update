@@ -538,12 +538,11 @@ p:empty {
   display: contents;
 }
 
-.flex {
-  display: flex;
-  gap: var(--gap-md);
-}
-
-.grid {
+/*
+ * Page layout grid (14 named columns). Named `layout-grid` so it cannot collide with Tailwind's
+ * single-property `grid` utility; the theme's old `.flex` helper (display + gap) was unused and removed.
+ */
+.layout-grid {
   --centered-column-number: 12;
   --full-width-column-number: 14;
   --centered: column-1 / span var(--centered-column-number);
@@ -554,7 +553,7 @@ p:empty {
 }
 
 @media screen and (min-width: 750px) {
-  .grid {
+  .layout-grid {
     display: grid;
     gap: 0;
     grid-template-columns: var(--margin-4xl) repeat(var(--centered-column-number), minmax(0, 1fr)) var(--margin-4xl);
@@ -563,7 +562,7 @@ p:empty {
 }
 
 @media screen and (min-width: 1400px) {
-  .grid {
+  .layout-grid {
     grid-template-columns:
       1fr repeat(
         var(--centered-column-number),
@@ -571,11 +570,6 @@ p:empty {
       )
       1fr;
   }
-}
-
-.flex {
-  display: flex;
-  gap: var(--gap-md);
 }
 
 .flip-x {
@@ -3657,26 +3651,7 @@ fly-to-cart.fly-to-cart--sticky {
   object-position: center;
 }
 
-/* Slideshow Arrow Hover Animation - must stay in base.css for proper CSS cascade */
-
-:not(.media-gallery--carousel)
-  > :is(slideshow-component:hover, slideshow-component:focus-within):not(:has(slideshow-controls:hover))
-  > slideshow-container
-  > slideshow-arrows
-  .slideshow-control {
-  animation: arrowsSlideIn var(--animation-speed) var(--animation-easing) forwards;
-}
-
-@keyframes arrowsSlideIn {
-  from {
-    transform: translate(var(--padding-sm), 0);
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
+/* Slider arrows (Splide) reveal on hover through utilities in snippets/slider-arrows.liquid. */
 
 .section-resource-list,
 .section-carousel {

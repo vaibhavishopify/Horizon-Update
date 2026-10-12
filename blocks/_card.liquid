@@ -7,7 +7,7 @@
 {% endcapture %}
 
 <div
-  class="card{% if block_settings.inherit_color_scheme == false %} color-{{ block_settings.color_scheme }}{% endif %}"
+  class="card splide__slide @container relative flex size-full min-w-0 flex-col overflow-hidden{% if block_settings.inherit_color_scheme == false %} color-{{ block_settings.color_scheme }}{% endif %}"
   ref="slides[]"
   data-carousel-card
   {{ block.shopify_attributes }}
@@ -15,7 +15,7 @@
   {%- if block_settings.link != blank and block_settings.background_media != 'video' -%}
     <a
       href="{{ block_settings.link }}"
-      class="card__link"
+      class="card__link absolute inset-0 z-layer-raised"
       {% if block_settings.open_in_new_tab %}
         target="_blank" rel="noopener"
       {% endif %}
@@ -69,7 +69,7 @@
   -%}
 
   {%- if preview_image or block_settings.toggle_overlay or show_placeholder -%}
-    <div class="card__media-wrapper">
+    <div class="card__media-wrapper absolute left-0 top-0 flex size-full overflow-hidden">
       {% render 'background-media',
         background_media: block_settings.background_media,
         background_video: block_settings.video,
@@ -84,12 +84,12 @@
   {%- endif -%}
 
   <div
-    class="spacing-style card__content{% if has_min_height %} card__content--has-min-height{% endif %}{% if block_settings.inherit_color_scheme == false %} color-{{ block_settings.color_scheme }}{% endif %}{% if preview_image or block_settings.toggle_overlay or show_placeholder %} background-transparent{% endif %}{% if request.design_mode %} card__content--design-mode{% endif %}"
+    class="spacing-style card__content relative z-layer-flat flex size-full flex-col aspect-[var(--card-ratio,1)]{% if has_min_height %} card__content--has-min-height{% endif %}{% if block_settings.inherit_color_scheme == false %} color-{{ block_settings.color_scheme }}{% endif %}{% if preview_image or block_settings.toggle_overlay or show_placeholder %} background-transparent bg-transparent{% endif %}{% if request.design_mode %} card__content--design-mode{% endif %}"
     style="--card-ratio: {{ card_ratio }}; {% if has_min_height %}--card-ratio-numeric: {{ card_ratio_numeric }};{% endif %} {% render 'spacing-style', settings: block_settings %}"
   >
     <div
       class="
-        card__inner
+        card__inner flex-1
         layout-panel-flex
         layout-panel-flex--{{ block_settings.content_direction }}
         {% if block_settings.vertical_on_mobile %}mobile-column{% endif %}
@@ -104,32 +104,13 @@
 </div>
 
 {% stylesheet %}
+  /* Layout is utility-driven in the markup; these rules cover merchant border settings,
+     container-query sizing and sibling/descendant behaviour that utilities cannot express. */
   .card {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
     border-radius: var(--border-radius, 0);
     border-width: var(--border-width, 0);
     border-style: var(--border-style, none);
     border-color: var(--border-color);
-    container-type: inline-size;
-  }
-
-  .card__content {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    z-index: var(--layer-flat);
-    display: flex;
-    flex-direction: column;
-    aspect-ratio: var(--card-ratio, 1);
-  }
-
-  .card__content.background-transparent {
-    background-color: transparent;
   }
 
   /* When card has both image and content, use min-height from container query */
@@ -137,27 +118,7 @@
     min-height: calc(100cqw / var(--card-ratio-numeric));
   }
 
-  .card__inner {
-    flex: 1;
-  }
-
-  .card__media-wrapper {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
-
   .card__media-wrapper video {
-    z-index: var(--layer-raised);
-  }
-
-  .card__link {
-    position: absolute;
-    inset: 0;
     z-index: var(--layer-raised);
   }
 

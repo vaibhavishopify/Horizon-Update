@@ -1,7 +1,9 @@
 {%- doc -%}
   Accordion Custom Component
 
-  Renders the accordion-custom custom element wrapper with co-located styles.
+  Renders the accordion wrapper with co-located styles. Behaviour is provided by the
+  `accordion` Alpine.data component in assets/alpine-components.js. The `accordion-custom`
+  tag name is kept because shared CSS and the `headerDrawer` Alpine component select it.
 
   @param {string} children - The content to render inside the component (typically a <details> element)
   @param {string} [class] - Additional CSS classes
@@ -28,6 +30,15 @@
 {%- enddoc -%}
 
 <accordion-custom
+  x-data="accordion({
+    openOnDesktop: {% if open_by_default_on_desktop %}true{% else %}false{% endif %},
+    openOnMobile: {% if open_by_default_on_mobile %}true{% else %}false{% endif %},
+    disableOnDesktop: {% if disable_on_desktop %}true{% else %}false{% endif %},
+    disableOnMobile: {% if disable_on_mobile %}true{% else %}false{% endif %},
+    closeWithEscape: {% if close_with_escape %}true{% else %}false{% endif %}
+  })"
+  x-on:click="handleClick"
+  x-on:keydown="handleKeydown"
   {% if class %}
     class="{{ class }}"
   {% endif %}
@@ -119,5 +130,3 @@
     }
   }
 {% endstylesheet %}
-
-

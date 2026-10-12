@@ -11,7 +11,7 @@ import { cycleFocus } from '@theme/focus';
  * @property {HTMLElement} container
  * @property {HTMLElement[]} [images]
  * @property {HTMLElement[]} [links]
- * @property {import('slideshow').Slideshow} slideshow
+ * @property {import('./slider').SliderComponent} slideshow
  *
  * @extends {Component<Refs>}
  */

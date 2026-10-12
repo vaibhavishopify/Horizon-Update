@@ -115,12 +115,13 @@
     height: 100%;
   }
 
-  .product-card__content slideshow-component {
-    --cursor: pointer;
+  /* The card gallery is a link: keep the pointer cursor over its Splide track */
+  .product-card__content slider-component .splide__track {
+    cursor: pointer;
   }
 
   @media screen and (max-width: 749px) {
-    .product-card slideshow-arrows .slideshow-control {
+    .product-card .splide__arrows {
       display: none;
     }
   }

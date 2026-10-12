@@ -1,0 +1,23 @@
+{
+  "name": "horizon-theme",
+  "version": "3.5.1",
+  "private": true,
+  "description": "Shopify Horizon theme with Alpine.js, Tailwind CSS and Splide.js",
+  "scripts": {
+    "build": "npm run build:css && npm run vendor",
+    "build:css": "tailwindcss -i ./src/tailwind.css -o ./assets/tailwind.css --minify",
+    "watch:css": "tailwindcss -i ./src/tailwind.css -o ./assets/tailwind.css --watch",
+    "vendor": "node ./scripts/vendor.mjs",
+    "dev": "shopify theme dev",
+    "check": "shopify theme check"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "playwright": "^1.64.0",
+    "tailwindcss": "^4.3.3"
+  },
+  "dependencies": {
+    "@splidejs/splide": "^4.1.4",
+    "alpinejs": "^3.17.4"
+  }
+}

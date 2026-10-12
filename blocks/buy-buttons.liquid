@@ -139,6 +139,7 @@
               class="volume-pricing"
               data-section-id="{{ section.id }}"
               ref="volumePricing"
+              x-data="volumePricing()"
             >
               <span class="volume-pricing__title">{{ 'content.volume_pricing' | t }}</span>
               <div class="volume-pricing__table">
@@ -206,7 +207,7 @@
                     type="button"
                     class="volume-pricing__toggle button-unstyled"
                     ref="volumePricingToggle"
-                    on:click="/toggleExpanded"
+                    x-on:click="toggle"
                   >
                     <span class="volume-pricing__toggle-text">
                       <span class="volume-pricing__show-more">+ {{ 'actions.show_more' | t }}</span>

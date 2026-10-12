@@ -6,15 +6,7 @@ const layeredSlideshowState = {
   activeSlideIndex: null,
 };
 
-/** @type {{ activeSlideIndex: number | null }} */
-const carouselState = {
-  activeSlideIndex: null,
-};
-
-/** @type {{ activeSlideIndex: number | null }} */
-const slideshowState = {
-  activeSlideIndex: null,
-};
+// Splide sliders (`slider-component`) handle their own block select / deselect in assets/slider.js.
 
 /**
  * @param {Event} event
@@ -45,53 +37,6 @@ document.addEventListener('shopify:block:select', function (event) {
       }
     }
 
-    // Keep track of the selected slide for the slideshow
-    const slide = event.target.closest('slideshow-slide');
-
-    if (slide) {
-      /** @type {import('./slideshow').Slideshow | null} */
-      const slideshow = slide.closest('slideshow-component');
-
-      if (slideshow) {
-        const index = Array.from(slide.parentElement?.children ?? []).indexOf(slide);
-
-        if (index === -1) return;
-
-        // Compare before updating to detect if same slide is selected again
-        const isAlreadyActive = index === slideshowState.activeSlideIndex;
-        slideshowState.activeSlideIndex = index;
-        // Pause autoplay
-        slideshow.pause();
-        slideshow.select(index, undefined, { animate: isAlreadyActive ? false : true });
-      }
-    }
-
-    // Keep track of the selected slide for the carousel
-    const carouselCard = event.target.closest('[data-carousel-card]');
-
-    if (carouselCard) {
-      /** @type {import('./slideshow').Slideshow | null} */
-      const slideshow = carouselCard.closest('slideshow-component');
-
-      if (slideshow) {
-        const cards = Array.from(carouselCard.parentElement?.children ?? []);
-        if (!cards) return;
-
-        const index = cards.indexOf(carouselCard);
-
-        if (index === -1) return;
-
-        // Compare before updating to detect if same slide is selected again
-        const isAlreadyActive = index === carouselState.activeSlideIndex;
-        carouselState.activeSlideIndex = index;
-        const targetCard = cards[index];
-
-        if (targetCard instanceof HTMLElement) {
-          targetCard.scrollIntoView({ behavior: isAlreadyActive ? 'instant' : 'smooth', inline: 'center' });
-        }
-      }
-    }
-
     // Keep track of the selected slide for the layered slideshow
     const layeredSlideshowPanel = event.target.closest('layered-slideshow-component [role="tabpanel"]');
 
@@ -118,14 +63,6 @@ document.addEventListener('shopify:block:deselect', function (event) {
     // Remove data-no-navigation when product card is deselected
     if (event.target.tagName === 'PRODUCT-CARD') {
       event.target.removeAttribute('data-no-navigation');
-    }
-
-    /** @type {import('./slideshow').Slideshow | null} */
-    const slideshow = event.target.closest('slideshow-component');
-
-    if (slideshow) {
-      // Resume playback
-      slideshow.resume();
     }
   }
 });

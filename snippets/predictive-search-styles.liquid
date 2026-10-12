@@ -372,26 +372,18 @@
   }
 
   .predictive-search-results__list {
-    --slide-width: 27.5%;
-    --slideshow-gap: var(--gap-md);
-
     /* Make space for the outline to be visible */
     padding-block-start: var(--border-width-sm);
   }
 
-  .predictive-search-results__list slideshow-arrows {
-    @media screen and (max-width: 749px) {
-      display: none;
-    }
-  }
-
   .predictive-search-results__no-results,
+  .predictive-search-results__list,
   .predictive-search-results__wrapper,
   .predictive-search-results__wrapper-products .predictive-search-results__card {
     animation: search-element-slide-up var(--animation-speed-medium) var(--animation-timing-bounce) backwards;
   }
 
-  slideshow-slide .resource-card {
+  .splide__slide .resource-card {
     /* stylelint-disable-next-line declaration-no-important */
     animation-delay: 0ms !important;
   }
@@ -560,19 +552,8 @@
     }
   }
 
-  .predictive-search-results__wrapper slideshow-slides {
-    --gutter-slide-width: var(--padding-xl);
-
-    /* Add padding to prevent hover animations from being clipped in slideshow
-       15px accommodates:
-       - Scale effect (9px on each side from 1.03 scale)
-       - Lift effect (4px upward movement)
-       - Shadow (15px spread with -5px offset)
-       Using 16px for better alignment with our spacing scale */
-    padding-block: var(--padding-xl);
-    margin-block: calc(-1 * var(--padding-xl));
-    gap: var(--gap-md);
-  }
+  /* Resource carousels are Splide sliders (snippets/predictive-search-resource-carousel.liquid):
+     gutters, gap and the hover-clip padding on the track come from the slider config and classes. */
 
   .predictive-search-results__resource-header {
     display: flex;
@@ -610,13 +591,5 @@
     margin-block-end: 0;
   }
 
-  .predictive-search-results__resource-header:has(slideshow-controls) .predictive-search-results__title {
-    margin-block-end: 0;
-  }
-
-  .predictive-search-results__resource-header slideshow-controls {
-    @media screen and (max-width: 749px) {
-      display: none;
-    }
-  }
+  /* Header arrows (.splide__arrows) are hidden below 750px with the `max-md:hidden` utility in the snippet. */
 {% endstylesheet %}

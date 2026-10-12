@@ -27,7 +27,7 @@
     class="__character-label"
   >
     <span
-      ref="characterCount"
+      x-ref="count"
       class="__character-count"
       data-template="{{ 'content.product_custom_property_character_count' | t: used_chars: '[current]', max_chars: '[max]' }}"
       data-max="{{ block_settings.max_length }}"
@@ -43,6 +43,7 @@
 <div
   class="spacing-style"
   style="{% render 'spacing-style', settings: block_settings %}"
+  x-data="characterCounter()"
   {{ block.shopify_attributes }}
 >
   {% if block_settings.property_heading != blank %}
@@ -65,8 +66,8 @@
     {% if actual_input_type == 'textarea' %}
       <div class="__input-wrapper">
         <textarea
-          ref="textInput"
-          on:input="/handleInput"
+          x-ref="input"
+          x-on:input="update"
           id="{{ element_id }}"
           name="{{ property_name }}"
           class="field__input custom-property__input"
@@ -95,8 +96,8 @@
     {% else %}
       <div class="__input-wrapper">
         <input
-          ref="textInput"
-          on:input="/handleInput"
+          x-ref="input"
+          x-on:input="update"
           type="text"
           id="{{ element_id }}"
           name="{{ property_name }}"
@@ -206,11 +207,6 @@
   }
 {% endstylesheet %}
 
-<script
-  src="{{ 'product-custom-property.js' | asset_url }}"
-  type="module"
-  fetchpriority="low"
-></script>
 
 {% schema %}
 {

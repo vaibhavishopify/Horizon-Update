@@ -1,7 +1,9 @@
 {%- doc -%}
-  Displays product images in a carousel.
+  Displays product images in a carousel (Splide via snippets/slider.liquid, assets/slider.js).
   Settings allow for a full slideshow, showing only the first image, or showing the second image when hovering.
-  Note: When the product card itself is in a carousel layout, the card-gallery's carousel is disabled with JavaScript.
+  Note: When the product card itself is in a carousel layout, the card-gallery's carousel is disabled (nested sliders).
+  product-card.js drives this slider through `refs.slideshow` (`select({ id })`, `next()`, `previous()`,
+  `initialSlide`, `refs.slides`) and toggles the `hidden` attribute on variant-image slides.
 
   @param [children] - Additional content rendered below the card gallery
   @param [section] - The section object the snippet is rendered in
@@ -61,6 +63,9 @@
       assign media_fit = block_settings.constrain_to_viewport
     endif
   endif
+
+  # Shared slider options: one image per page, rewind at the ends, no pagination.
+  assign gallery_config = '{"perPage":1,"rewind":true,"gap":0,"pagination":false}'
 %}
 
 <div
@@ -94,6 +99,7 @@
       assign other_media = product.media | reject: 'src', product.featured_media
       assign media_list_to_show = product.featured_media | concat: other_media
 
+      assign show_arrows = false
       if product.media.size > 2 and generic_media_size > 0
         assign show_arrows = true
       endif
@@ -112,9 +118,9 @@
           assign sizes = 'auto, ' | append: image_sizes
 
           assign hidden = false
-          assign attributes = ''
+          assign is_variant_image = false
           if variant_images contains media.src
-            assign attributes = 'variant-image'
+            assign is_variant_image = true
 
             if forloop.first == false
               # hide all variant images that aren't the first one
@@ -144,11 +150,21 @@
             assign class = class | append: ' constrain-height'
           endif
 
-          capture slideshow_children
-            render 'product-media', media: media, sizes: sizes, loading: loading, preview_image_only: true
-          endcapture
-
-          render 'slideshow-slide', slide_id: media.id, index: forloop.index0, hidden: hidden, class: class, attributes: attributes, children: slideshow_children, media_fit: media_fit
+          assign slide_media_fit = media_fit | default: 'cover'
+          echo '<li class="splide__slide min-w-0 ' | append: class | append: '"'
+          echo ' ref="slides[]"'
+          echo ' slide-id="' | append: media.id | append: '"'
+          echo ' data-slide-id="' | append: media.id | append: '"'
+          echo ' style="--product-media-fit: ' | append: slide_media_fit | append: ';"'
+          if is_variant_image
+            echo ' variant-image'
+          endif
+          if hidden
+            echo ' hidden'
+          endif
+          echo '>'
+          render 'product-media', media: media, sizes: sizes, loading: loading, preview_image_only: true
+          echo '</li>'
         endfor
       endcapture
 
@@ -163,12 +179,15 @@
       href="{{ product.selected_or_first_available_variant.url }}"
       aria-label="{{- product.title -}}"
     >
-      {% render 'slideshow',
+      {% render 'slider',
         ref: 'slideshow',
-        initial_slide: 0,
-        slides: slides,
-        slide_count: media_list_to_show.size,
+        class: 'card-gallery__slider',
+        slides_html: slides,
+        config: gallery_config,
+        per_page: 1,
         show_arrows: show_arrows,
+        arrows_class: 'max-md:hidden',
+        arrow_class: 'card-gallery__arrow',
         attributes: slideshow_attributes
       %}
     </a>
@@ -194,9 +213,11 @@
         echo placeholder_name | placeholder_svg_tag
       endcapture
       capture placeholder_slide
-        render 'slideshow-slide', index: 1, children: placeholder_image, class: 'product-media-container card-gallery__placeholder'
+        echo '<li class="splide__slide min-w-0 product-media-container card-gallery__placeholder" ref="slides[]">'
+        echo placeholder_image
+        echo '</li>'
       endcapture
-      render 'slideshow', ref: 'slideshow', slides: placeholder_slide, slide_count: 1, attributes: 'disabled="true"'
+      render 'slider', ref: 'slideshow', class: 'card-gallery__slider', slides_html: placeholder_slide, config: gallery_config, per_page: 1, attributes: 'disabled="true"'
     %}
   {%- endif -%}
   {{ children }}
@@ -362,7 +383,7 @@
     font-size: var(--font-size--xs);
   }
 
-  [product-grid-view='zoom-out'] .card-gallery .slideshow-control {
+  [product-grid-view='zoom-out'] .card-gallery .splide__arrow {
     min-width: auto;
   }
 
@@ -370,9 +391,7 @@
     display: block;
   }
 
-  [product-grid-view='zoom-out']
-    .card-gallery
-    > :is(quick-add-component, .product-badges, slideshow-component > slideshow-controls) {
+  [product-grid-view='zoom-out'] .card-gallery > :is(quick-add-component, .product-badges, slider-component > .slider-controls) {
     display: none;
   }
 
@@ -380,8 +399,8 @@
     display: block;
   }
 
-  .card-gallery slideshow-arrows .slideshow-control {
-    /* Align icons with quick-add button */
+  /* Align arrow icons with the quick-add button */
+  .card-gallery .card-gallery__arrow {
     padding-inline: var(--padding-xl);
 
     @container (max-width: 249px) {
@@ -389,19 +408,8 @@
     }
   }
 
-  /*
-   * Card galleries preview the next or previous images on 'pointerenter', so we
-   * try to kick load them beforehand (they are lazy loaded otherwise).
-   */
-  .card-gallery
-    :is(
-      slideshow-slide:has(+ slideshow-slide[aria-hidden='false']),
-      slideshow-slide[aria-hidden='false'] + slideshow-slide
-    ) {
-    content-visibility: auto;
-
-    slideshow-component[actioned] & {
-      content-visibility: visible;
-    }
+  /* Disabled (merchant setting off, or nested in a carousel) galleries show no arrows */
+  .card-gallery slider-component[data-slider-disabled] .splide__arrows {
+    display: none;
   }
 {% endstylesheet %}

@@ -1,0 +1,93 @@
+{%- doc -%}
+  Renders previous/next arrow buttons for a Splide slider (`snippets/slider.liquid`).
+  Splide wires up any `.splide__arrow--prev` / `.splide__arrow--next` inside a `.splide__arrows`
+  wrapper within the slider root, so this can render over the media or inline in a header.
+
+  @param {string} [icon_style] - 'arrow' (default) or 'chevron'; append 'large' for bigger icons.
+  @param {string} [icon_shape] - 'none' (default), 'circle' or 'square'.
+  @param {string} [position] - 'center' (default), 'left' or 'right'. Only used when `overlay` is true.
+  @param {boolean} [overlay] - Position the arrows over the slides (absolute, full-bleed). Default true.
+  @param {boolean} [reveal] - Hide arrows until the slider is hovered or focused. Default true.
+  @param {string} [class] - Extra classes for the wrapper.
+  @param {string} [arrow_class] - Extra classes for each arrow button.
+
+  @example
+  {% render 'slider-arrows', icon_style: 'chevron', overlay: false, reveal: false %}
+{%- enddoc -%}
+
+{%- liquid
+  assign icon_style = icon_style | default: 'arrow'
+  assign icon_shape = icon_shape | default: 'none'
+  assign position = position | default: 'center'
+  if overlay == nil
+    assign overlay = true
+  endif
+  if reveal == nil
+    assign reveal = true
+  endif
+
+  assign icon_name = 'arrow'
+  if icon_style contains 'chevron'
+    assign icon_name = 'caret'
+  endif
+
+  assign shape_class = ''
+  assign blend_class = ''
+  if overlay
+    assign blend_class = 'mix-blend-difference text-white'
+  endif
+  if icon_shape == 'circle'
+    assign shape_class = 'aspect-square rounded-full bg-primary-button-background text-primary-button-text'
+    assign blend_class = ''
+  elsif icon_shape == 'square'
+    assign shape_class = 'aspect-square rounded-none bg-primary-button-background text-primary-button-text'
+    assign blend_class = ''
+  endif
+
+  if overlay
+    case position
+      when 'left'
+        assign layout_class = 'pointer-events-none absolute inset-0 z-layer-heightened flex items-end justify-start px-xs'
+      when 'right'
+        assign layout_class = 'pointer-events-none absolute inset-0 z-layer-heightened flex items-end justify-end px-xs'
+      else
+        assign layout_class = 'pointer-events-none absolute inset-0 z-layer-heightened flex items-center justify-between'
+    endcase
+  else
+    assign layout_class = 'flex items-center gap-2xs'
+  endif
+
+  assign reveal_class = ''
+  if reveal
+    assign reveal_class = 'opacity-0 translate-x-sm group-hover/slider:opacity-100 group-hover/slider:translate-x-0 group-focus-within/slider:opacity-100 group-focus-within/slider:translate-x-0'
+  endif
+
+  assign size_class = ''
+  if icon_style contains 'large'
+    assign size_class = '[&_svg]:size-[var(--slideshow-controls-icon)]'
+  endif
+
+  assign arrow_actions = 'prev,next' | split: ','
+-%}
+
+<div class="splide__arrows {{ layout_class }} {{ blend_class }} {{ class }}">
+  {% for action in arrow_actions %}
+    <button
+      type="button"
+      class="splide__arrow splide__arrow--{{ action }} slider__arrow button button-unstyled button-unstyled--transparent pointer-events-auto flex min-h-touch-target min-w-touch-target items-center justify-center px-xs transition-[opacity,translate] duration-theme ease-theme disabled:hidden {{ reveal_class }} {{ shape_class }} {{ size_class }} {{ arrow_class }}{% if action == 'prev' %} -scale-x-100{% elsif overlay %} ms-auto{% endif %}"
+      {% if action == 'prev' %}
+        aria-label="{{ 'accessibility.slideshow_previous' | t }}"
+      {% else %}
+        aria-label="{{ 'accessibility.slideshow_next' | t }}"
+      {% endif %}
+    >
+      <span class="svg-wrapper icon-{{ icon_name }}{% if icon_name == 'caret' %} -rotate-90{% endif %}">
+        {%- if icon_name == 'caret' -%}
+          {{- 'icon-caret.svg' | inline_asset_content -}}
+        {%- else -%}
+          {{- 'icon-arrow.svg' | inline_asset_content -}}
+        {%- endif -%}
+      </span>
+    </button>
+  {% endfor %}
+</div>

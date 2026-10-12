@@ -61,15 +61,13 @@
       {% when 'spotlight' %}
         {% capture slides %}
           {% for collection in collection_list limit: limit %}
-          {% liquid
-            assign current = false
+            {% liquid
+              assign current = false
 
-            if collection.id == active_collection.id
-              assign current = true
-            endif
-          %}
-
-          {% capture slide %}
+              if collection.id == active_collection.id
+                assign current = true
+              endif
+            %}
             {% # theme-check-disable UniqueStaticBlockId %}
             {% content_for 'block',
               type: '_collection-link',
@@ -80,17 +78,26 @@
               image_only: true
             %}
             {% # theme-check-enable UniqueStaticBlockId %}
-          {% endcapture %}
+            {% unless forloop.last %}<!--@slide/split-->{% endunless %}
+          {% endfor %}
+        {% endcapture %}
 
-          {% render 'slideshow-slide', children: slide, index: forloop.index0 %}
-        {% endfor %}
-      {% endcapture %}
+        {% liquid
+          assign slides = slides | strip | split: '<!--@slide/split-->'
+          # Splide image slideshow synced with the links by collection-links.js (select() + slideshow:select).
+          if request.design_mode
+            assign images_config = '{"type":"slide","rewind":true,"perPage":1,"arrows":false,"pagination":false}'
+          else
+            assign images_config = '{"type":"loop","perPage":1,"arrows":false,"pagination":false}'
+          endif
+        %}
 
-        {% render 'slideshow',
+        {% render 'slider',
           slides: slides,
-          slide_count: collection_list.size,
           class: 'collection-links__images',
-          ref: 'slideshow'
+          ref: 'slideshow',
+          config: images_config,
+          per_page: 1
         %}
     {% endcase %}
   </collection-links-component>

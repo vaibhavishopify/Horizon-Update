@@ -5,7 +5,7 @@
 {%- assign block_index = section.blocks | find_index: 'id', block.id -%}
 
 {%- unless plain_text == '' -%}
-  <slideshow-slide
+  <div
     ref="slides[]"
     class="
       announcement-bar__slide
@@ -32,7 +32,7 @@
 
     {% if block_settings.link != blank %}
       <a
-        class="announcement-bar__link"
+        class="announcement-bar__link absolute inset-0"
         href="{{ block_settings.link }}"
       >
         <span class="visually-hidden">
@@ -40,7 +40,7 @@
         </span>
       </a>
     {% endif %}
-  </slideshow-slide>
+  </div>
 {%- endunless -%}
 
 {% stylesheet %}

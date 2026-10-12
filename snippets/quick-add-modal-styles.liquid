@@ -133,7 +133,7 @@
         .product-media-container:is(:first-of-type, :nth-of-type(even))
         .product-media > *,
         /* Carousel */
-      .media-gallery--carousel slideshow-container {
+      .media-gallery--carousel .splide__container {
       border-top-left-radius: 0;
       border-bottom-left-radius: 0;
     }
@@ -482,10 +482,6 @@
     padding-inline: var(--padding-3xl);
   }
 
-  .quick-add-modal__content slideshow-slide:not([aria-hidden='false']) {
-    content-visibility: auto;
-  }
-
   .quick-add-modal__content .product-information__media {
     width: 100%;
     grid-column: 1 / span 1;
@@ -521,26 +517,27 @@
     padding: 0;
   }
 
-  .quick-add-modal__content .product-information__media slideshow-arrows {
+  /* The media gallery slider is not initialised inside the modal (`data-slider-disable-nested`
+     on the content container); its slides are laid out as a vertical list instead. */
+  .quick-add-modal__content .product-information__media .splide__arrows {
     display: none;
   }
 
-  .quick-add-modal__content .product-information__media slideshow-container {
+  .quick-add-modal__content .product-information__media .splide__track {
     display: block;
+    overflow: visible;
   }
 
-  .quick-add-modal__content .product-information__media slideshow-slides {
+  .quick-add-modal__content .product-information__media .splide__list {
     display: flex;
     flex-direction: column;
     gap: var(--gap-2xs);
     overflow: visible;
-    scroll-snap-type: none;
   }
 
-  .quick-add-modal__content .product-information__media slideshow-slide {
+  .quick-add-modal__content .product-information__media .splide__slide {
     width: 100%;
     flex: none;
-    scroll-snap-align: unset;
     position: relative;
     transform: none;
     opacity: 1;
@@ -548,27 +545,28 @@
     transition: opacity 0.3s var(--animation-easing);
   }
 
-  .quick-add-modal__content .product-information__media slideshow-slide[aria-hidden='true'] {
+  /* On mobile the compact layout shows the first image only, as the legacy slideshow did. */
+  .quick-add-modal__content .product-information__media .splide__slide:not(:first-child) {
     @media screen and (max-width: 749px) {
       display: none;
     }
   }
 
-  .quick-add-modal__content .product-information__media slideshow-slide:nth-child(1) {
+  .quick-add-modal__content .product-information__media .splide__slide:nth-child(1) {
     animation: fadeSlideIn 0.3s var(--animation-timing-fade-in) both;
   }
 
-  .quick-add-modal__content .product-information__media slideshow-slide:nth-child(2) {
+  .quick-add-modal__content .product-information__media .splide__slide:nth-child(2) {
     animation: fadeSlideIn 0.3s var(--animation-timing-fade-in) both;
     animation-delay: 0.05s;
   }
 
-  .quick-add-modal__content .product-information__media slideshow-slide:nth-child(3) {
+  .quick-add-modal__content .product-information__media .splide__slide:nth-child(3) {
     animation: fadeSlideIn 0.3s var(--animation-timing-fade-in) both;
     animation-delay: 0.1s;
   }
 
-  .quick-add-modal__content .product-information__media :is(slideshow-controls, slideshow-controls[thumbnails]) {
+  .quick-add-modal__content .product-information__media :is(.slider-controls, .slider-thumbnails, slideshow-controls, slideshow-controls[thumbnails]) {
     display: none;
   }
 
